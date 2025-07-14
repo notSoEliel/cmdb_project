@@ -1,0 +1,14 @@
+{
+    "name": "user/cmdb_project",
+    "description": "Sistema CMDB para la gestión de inventario.",
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "authors": [{
+        "name": "Eliel",
+        "email": "eliel.garcia1@utp.ac.pa"
+    }],
+    "require": {}
+}
