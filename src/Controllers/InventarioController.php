@@ -21,7 +21,8 @@ class InventarioController extends BaseController
         $data = [
             'inventarios' => $inventarioModel->findAll(['sort' => $sort, 'order' => $order]),
             'categorias' => $categoriaModel->findAll(),
-            'pageTitle' => 'Gestionar Inventario'
+            'pageTitle' => 'Gestionar Inventario',
+            'formId' => 'form-inventario'
         ];
 
         $this->render('Views/inventario/index.php', $data);
@@ -97,7 +98,7 @@ class InventarioController extends BaseController
         $data = [
             'equipo' => $equipo,
             'imagenes' => $imagenes,
-            'pageTitle' => 'Gestionar Imágenes'
+            'pageTitle' => 'Gestionar Imágenes',
         ];
 
         $this->render('Views/inventario/imagenes.php', $data);

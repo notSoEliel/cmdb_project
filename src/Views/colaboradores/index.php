@@ -31,36 +31,36 @@ $nextOrder = ($order === 'asc') ? 'desc' : 'asc';
         <div class="card mb-4">
             <div class="card-header"><?= $colaboradorActual ? '✏️ Editando Colaborador' : '➕ Agregar Nuevo Colaborador' ?></div>
             <div class="card-body">
-                <form id="form-validation" action="index.php?route=colaboradores&action=<?= $colaboradorActual ? 'update' : 'store' ?>" method="POST">
+                <form id="form-colaborador" action="index.php?route=colaboradores&action=<?= $colaboradorActual ? 'update' : 'store' ?>" method="POST">
                     <input type="hidden" name="id" value="<?= $colaboradorActual['id'] ?? '' ?>">
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-md-6 form-group">
                             <label class="form-label">Nombre</label>
-                            <input type="text" class="form-control " name="nombre" value="<?= htmlspecialchars($colaboradorActual['nombre'] ?? '') ?>" required>
+                            <input type="text" class="form-control " name="nombre" value="<?= htmlspecialchars($colaboradorActual['nombre'] ?? '') ?>">
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 form-group">
                             <label class="form-label">Apellido</label>
-                            <input type="text" class="form-control " name="apellido" value="<?= htmlspecialchars($colaboradorActual['apellido'] ?? '') ?>" required>
+                            <input type="text" class="form-control " name="apellido" value="<?= htmlspecialchars($colaboradorActual['apellido'] ?? '') ?>">
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 form-group">
                             <label class="form-label">ID Único</label>
-                            <input type="text" class="form-control" name="identificacion_unica" value="<?= htmlspecialchars($colaboradorActual['identificacion_unica'] ?? '') ?>" required>
+                            <input type="text" class="form-control" name="identificacion_unica" value="<?= htmlspecialchars($colaboradorActual['identificacion_unica'] ?? '') ?>">
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 form-group">
                             <label class="form-label">Email</label>
-                            <input type="email" class="form-control" name="email" value="<?= htmlspecialchars($colaboradorActual['email'] ?? '') ?>" required>
+                            <input type="email" class="form-control" name="email" value="<?= htmlspecialchars($colaboradorActual['email'] ?? '') ?>">
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 form-group">
                             <label class="form-label">Ubicación</label>
                             <input type="text" class="form-control" name="ubicacion" value="<?= htmlspecialchars($colaboradorActual['ubicacion'] ?? '') ?>">
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 form-group">
                             <label class="form-label">Teléfono</label>
-                            <input type="tel" class="form-control" name="telefono" placeholder="Opcional. Formato: 6123-4567" value="<?= htmlspecialchars($colaboradorActual['telefono'] ?? '') ?>">
+                            <input type="tel" class="form-control" name="telefono" placeholder="Formato: 6123-4567 o 213-4567" value="<?= htmlspecialchars($colaboradorActual['telefono'] ?? '') ?>">
                         </div>
-                        <div class="col-md-12">
+                        <div class="col-md-12 form-group">
                             <label class="form-label">Contraseña</label>
-                            <input type="password" class="form-control" name="password" placeholder="<?= $colaboradorActual ? 'Dejar en blanco para no cambiar' : '' ?>" <?= $colaboradorActual ? '' : 'required' ?>>
+                            <input type="password" class="form-control" name="password" placeholder="<?= $colaboradorActual ? 'Dejar en blanco para no cambiar' : '' ?>" <?= $colaboradorActual ? '' : '' ?>>
                             <small class="form-text text-muted"><?= $colaboradorActual ? 'Solo ingresa una nueva contraseña si deseas cambiarla.' : '' ?></small>
                         </div>
                     </div>
@@ -83,6 +83,8 @@ $nextOrder = ($order === 'asc') ? 'desc' : 'asc';
                             <th><a href="?route=colaboradores&sort=id&order=<?= ($sort === 'id') ? $nextOrder : 'asc' ?>">ID <?= ($sort === 'id') ? ($order === 'asc' ? '▲' : '▼') : '' ?></a></th>
                             <th><a href="?route=colaboradores&sort=nombre&order=<?= ($sort === 'nombre') ? $nextOrder : 'asc' ?>">Nombre <?= ($sort === 'nombre') ? ($order === 'asc' ? '▲' : '▼') : '' ?></a></th>
                             <th><a href="?route=colaboradores&sort=email&order=<?= ($sort === 'email') ? $nextOrder : 'asc' ?>">Email <?= ($sort === 'email') ? ($order === 'asc' ? '▲' : '▼') : '' ?></a></th>
+                            <th>Ubicación</th>
+                            <th>Teléfono</th>
                             <th class="text-end">Acciones</th>
                         </tr>
                     </thead>
@@ -96,6 +98,8 @@ $nextOrder = ($order === 'asc') ? 'desc' : 'asc';
                                     <td><?= $colaborador['id'] ?></td>
                                     <td><?= htmlspecialchars($colaborador['nombre'] . ' ' . $colaborador['apellido']) ?></td>
                                     <td><?= htmlspecialchars($colaborador['email']) ?></td>
+                                    <td><?= htmlspecialchars($colaborador['ubicacion']) ?></td> 
+                                    <td><?= htmlspecialchars($colaborador['telefono']) ?></td>
                                     <td class="text-end">
                                         <a href="?route=colaboradores&editar_id=<?= $colaborador['id'] ?>" class="btn btn-sm btn-warning"><i class="bi bi-pencil-fill"></i></a>
                                         <form action="index.php?route=colaboradores&action=destroy" method="POST" class="d-inline form-delete"><input type="hidden" name="id" value="<?= $colaborador['id'] ?>"><button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-trash-fill"></i></button></form>

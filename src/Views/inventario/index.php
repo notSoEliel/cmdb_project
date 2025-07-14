@@ -27,16 +27,16 @@ $nextOrder = ($order === 'asc') ? 'desc' : 'asc';
         <div class="card mb-4">
             <div class="card-header"><?= $equipoActual ? '✏️ Editando Equipo' : '➕ Agregar Nuevo Equipo' ?></div>
             <div class="card-body">
-                <form id="form-validation" action="index.php?route=inventario&action=<?= $equipoActual ? 'update' : 'store' ?>" method="POST">
+                <form id="form-inventario" action="index.php?route=inventario&action=<?= $equipoActual ? 'update' : 'store' ?>" method="POST">
                     <input type="hidden" name="id" value="<?= $equipoActual['id'] ?? '' ?>">
                     <div class="row g-3">
-                        <div class="col-md-8">
+                        <div class="col-md-8 form-group">
                             <label class="form-label">Nombre del Equipo</label>
-                            <input type="text" class="form-control" name="nombre_equipo" value="<?= htmlspecialchars($equipoActual['nombre_equipo'] ?? '') ?>" required>
+                            <input type="text" class="form-control" name="nombre_equipo" value="<?= htmlspecialchars($equipoActual['nombre_equipo'] ?? '') ?>">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4 form-group">
                             <label class="form-label">Categoría</label>
-                            <select class="form-select" name="categoria_id" required>
+                            <select class="form-select" name="categoria_id">
                                 <option value="">Seleccione...</option>
                                 <?php foreach ($categorias as $cat): ?>
                                     <option value="<?= $cat['id'] ?>" <?= (isset($equipoActual) && $equipoActual['categoria_id'] == $cat['id']) ? 'selected' : '' ?>>
@@ -45,27 +45,27 @@ $nextOrder = ($order === 'asc') ? 'desc' : 'asc';
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4 form-group">
                             <label class="form-label">Marca</label>
                             <input type="text" class="form-control" name="marca" value="<?= htmlspecialchars($equipoActual['marca'] ?? '') ?>">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4 form-group">
                             <label class="form-label">Modelo</label>
                             <input type="text" class="form-control" name="modelo" value="<?= htmlspecialchars($equipoActual['modelo'] ?? '') ?>">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4 form-group">
                             <label class="form-label">No. Serie</label>
                             <input type="text" class="form-control" name="serie" value="<?= htmlspecialchars($equipoActual['serie'] ?? '') ?>">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4 form-group">
                             <label class="form-label">Costo ($)</label>
                             <input type="number" min="0" step="0.01" class="form-control" name="costo" value="<?= htmlspecialchars($equipoActual['costo'] ?? '0.00') ?>">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4 form-group">
                             <label class="form-label">Fecha de Ingreso</label>
-                            <input type="date" class="form-control" name="fecha_ingreso" value="<?= htmlspecialchars($equipoActual['fecha_ingreso'] ?? '') ?>" required>
+                            <input type="date" class="form-control" name="fecha_ingreso" value="<?= htmlspecialchars($equipoActual['fecha_ingreso'] ?? '') ?>">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4 form-group">
                             <label class="form-label">Depreciación (Años)</label>
                             <input type="number" min="0" class="form-control" name="tiempo_depreciacion_anios" value="<?= htmlspecialchars($equipoActual['tiempo_depreciacion_anios'] ?? '0') ?>">
                         </div>

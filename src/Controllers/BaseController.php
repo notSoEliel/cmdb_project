@@ -19,6 +19,11 @@ abstract class BaseController
      */
     protected function render(string $view, array $data = [])
     {
+        if (isset($data['formId'])) {
+            $validationService = new ValidationService();
+            $data['validationScript'] = $validationService->generateJQueryValidateScript($data['formId']);
+        }
+
         // Convierte las claves del array en variables (ej: $data['categorias'] se convierte en $categorias)
         extract($data);
 

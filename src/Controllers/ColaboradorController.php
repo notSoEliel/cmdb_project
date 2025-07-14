@@ -16,7 +16,8 @@ class ColaboradorController extends BaseController{
         // Preparamos los datos para la vista
         $data = [
             'colaboradores' => $colaboradorModel->findAll(['sort' => $sort, 'order' => $order]),
-            'pageTitle' => 'Gestionar Colaboradores'
+            'pageTitle' => 'Gestionar Colaboradores',
+            'formId' => 'form-colaborador'
         ];
 
         $this->render('Views/colaboradores/index.php', $data);
