@@ -22,7 +22,7 @@ $nextOrder = ($order === 'asc') ? 'desc' : 'asc';
 <body>
     <div class="container mt-5">
         <a href="index.php">← Volver al Menú Principal</a>
-        <h1 class="mt-2">Gestión de Colaboradores (MVC)</h1>
+        <h1 class="mt-2">Gestión de Colaboradores</h1>
         <p>Administra los colaboradores que usarán los equipos del inventario.</p>
 
         <?php if ($mensaje): ?><div class="alert alert-success"><?= $mensaje ?></div><?php endif; ?>

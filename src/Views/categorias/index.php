@@ -21,7 +21,7 @@ $nextOrder = ($order === 'asc') ? 'desc' : 'asc';
 
 <body>
     <div class="container mt-5">
-        <h1>Gestión de Categorías (MVC)</h1>
+        <h1>Gestión de Categorías</h1>
         <p>Aquí puedes administrar las categorías para el inventario. Haz clic en los encabezados de la tabla para ordenar.</p>
 
         <?php if ($mensaje): ?>

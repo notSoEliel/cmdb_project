@@ -9,6 +9,7 @@ require_once '../config/app.php'; //
 use App\Controllers\CategoriaController;
 use App\Controllers\ColaboradorController;
 use App\Controllers\InventarioController;
+use App\Controllers\DashboardController;
 // Agregaremos más controladores aquí en el futuro
 
 // --- Router Básico ---
@@ -40,13 +41,11 @@ switch ($route) {
             echo "Error: Acción no encontrada.";
         }
         break;
-
-    // Aquí irán las rutas para 'colaboradores', 'inventario', etc.
-
+    case 'home': // <-- Añadir este case
     default:
-        // --- Página de inicio por defecto ---
-        $pageTitle = "Menú Principal - CMDB";
-        ob_start(); // Inicia el buffer de salida para capturar el HTML
+        $controller = new DashboardController();
+        $controller->index();
+        break;
 ?>
         <div class="px-4 py-5 my-5 text-center">
             <h1 class="display-5 fw-bold text-body-emphasis">Sistema CMDB</h1>

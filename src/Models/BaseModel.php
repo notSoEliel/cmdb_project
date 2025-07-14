@@ -20,6 +20,17 @@ abstract class BaseModel {
     protected $allowedSortColumns = ['id'];
 
     /**
+     * Obtiene el total de registros en la tabla.
+     *
+     * @return int El total de registros.
+     */
+    public function countAll() {
+        $sql = "SELECT COUNT(id) as total FROM {$this->tableName}";
+        $result = Database::getInstance()->query($sql)->find();
+        return $result['total'];
+    }
+
+    /**
      * Obtiene todos los registros de la tabla, con opciones de ordenamiento.
      *
      * @param array $options Opciones para la consulta, como ['sort' => 'columna', 'order' => 'asc|desc']

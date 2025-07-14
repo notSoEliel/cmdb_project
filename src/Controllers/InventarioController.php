@@ -105,37 +105,61 @@ class InventarioController extends BaseController
     }
 
     /**
-     * Procesa la subida de una nueva imagen.
+     * Procesa la subida de una nueva imagen, validando el tipo de archivo.
      */
     public function uploadImage()
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['imagen'], $_POST['inventario_id'])) {
-            $inventario_id = $_POST['inventario_id'];
+        // Asegurarse de que el inventario_id esté presente
+        if (!isset($_POST['inventario_id'])) {
+            // Redirigir o mostrar un error si no hay ID
+            header('Location: ' . BASE_URL . 'index.php?route=inventario');
+            exit;
+        }
+
+        $inventario_id = $_POST['inventario_id'];
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['imagen'])) {
             $imagen = $_FILES['imagen'];
 
             if ($imagen['error'] === UPLOAD_ERR_OK) {
-                $uploadDir = '../public/uploads/inventario/';
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0777, true);
-                }
 
-                $fileName = uniqid() . '-' . basename($imagen['name']);
-                $targetPath = $uploadDir . $fileName;
+                // --- INICIO DE LA VALIDACIÓN DE TIPO DE ARCHIVO ---
 
-                if (move_uploaded_file($imagen['tmp_name'], $targetPath)) {
-                    $imagenModel = new \App\Models\InventarioImagen();
-                    $imagenModel->save($inventario_id, $fileName);
+                $allowed_extensions = ['jpg', 'jpeg', 'png', 'webp'];
+                $allowed_mime_types = ['image/jpeg', 'image/png', 'image/webp'];
 
-                    $_SESSION['mensaje_sa2'] = ['title' => '¡Subida!', 'text' => 'La imagen se ha subido correctamente.', 'icon' => 'success'];
+                $file_extension = strtolower(pathinfo($imagen['name'], PATHINFO_EXTENSION));
+                $file_mime_type = $imagen['type'];
+
+                if (in_array($file_extension, $allowed_extensions) && in_array($file_mime_type, $allowed_mime_types)) {
+
+                    // Si la validación es exitosa, procedemos a mover el archivo
+                    $uploadDir = '../public/uploads/inventario/';
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0777, true);
+                    }
+
+                    $fileName = uniqid() . '-' . basename($imagen['name']);
+                    $targetPath = $uploadDir . $fileName;
+
+                    if (move_uploaded_file($imagen['tmp_name'], $targetPath)) {
+                        $imagenModel = new \App\Models\InventarioImagen();
+                        $imagenModel->save($inventario_id, $fileName);
+                        $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'La imagen se ha subido correctamente.', 'icon' => 'success'];
+                    } else {
+                        $_SESSION['mensaje_sa2'] = ['title' => '¡Error de Servidor!', 'text' => 'No se pudo mover el archivo. Verifica los permisos.', 'icon' => 'error'];
+                    }
                 } else {
-                    // ¡Este es el mensaje de error clave!
-                    $_SESSION['mensaje_sa2'] = ['title' => '¡Error de Permisos!', 'text' => 'No se pudo mover el archivo. Asegúrate de que la carpeta /public/uploads/inventario/ tenga permisos de escritura.', 'icon' => 'error'];
+                    // Si el tipo de archivo no es válido, preparamos un mensaje de error
+                    $_SESSION['mensaje_sa2'] = ['title' => 'Archivo no Válido', 'text' => 'Solo se permiten archivos de tipo JP(E)G, PNG o WEBP.', 'icon' => 'error'];
                 }
+                // --- FIN DE LA VALIDACIÓN ---
+
             } else {
                 $_SESSION['mensaje_sa2'] = ['title' => 'Error de Subida', 'text' => 'Hubo un problema al recibir el archivo.', 'icon' => 'error'];
             }
         } else {
-            $_SESSION['mensaje_sa2'] = ['title' => 'Error', 'text' => 'No se recibió ningún archivo o falta el ID del inventario.', 'icon' => 'error'];
+            $_SESSION['mensaje_sa2'] = ['title' => 'Error', 'text' => 'No se recibió ningún archivo.', 'icon' => 'error'];
         }
 
         // Redirige de vuelta a la página de imágenes
