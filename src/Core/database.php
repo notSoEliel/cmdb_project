@@ -88,12 +88,24 @@ class Database {
     public function find() {
         return $this->statement->fetch();
     }
-    
+
     /**
      * Obtiene el ID del último registro insertado.
      * @return string
      */
     public function lastInsertId() {
         return $this->connection->lastInsertId();
+    }
+
+    public function beginTransaction() {
+        return $this->connection->beginTransaction();
+    }
+
+    public function commit() {
+        return $this->connection->commit();
+    }
+
+    public function rollBack() {
+        return $this->connection->rollBack();
     }
 }

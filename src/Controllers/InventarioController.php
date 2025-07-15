@@ -46,7 +46,7 @@ class InventarioController extends BaseController
             'search' => $search,
             'filters' => $filters,
             // Le indicamos al modelo qué columnas queremos seleccionar con el JOIN
-            'selectClause' => 'i.*, c.nombre as nombre_categoria' 
+            'selectClause' => 'i.*, c.nombre as nombre_categoria'
         ];
 
         // --- 3. Obtención de Datos y Cálculo de Paginación ---
@@ -90,6 +90,45 @@ class InventarioController extends BaseController
             'categorias' => $categoriaModel->findAll(), // Para el dropdown del formulario
             'tableConfig' => $tableConfig // Pasamos toda la config a la vista
         ]);
+    }
+
+    /**
+     * Muestra el formulario para asignar un equipo.
+     * Obtiene los detalles del equipo y la lista de todos los colaboradores.
+     */
+    public function showAssignForm()
+    {
+        $inventario_id = (int)($_GET['id'] ?? 0);
+        $inventarioModel = new Inventario();
+        $colaboradorModel = new \App\Models\Colaborador();
+
+        $this->render('Views/inventario/asignar.php', [
+            'equipo' => $inventarioModel->findById($inventario_id),
+            'colaboradores' => $colaboradorModel->findAll(), // Para el <select>
+            'pageTitle' => 'Asignar Equipo'
+        ]);
+    }
+
+    /**
+     * Procesa el envío del formulario de asignación.
+     */
+    public function assign()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $inventario_id = (int)$_POST['inventario_id'];
+            $colaborador_id = (int)$_POST['colaborador_id'];
+
+            $asignacionModel = new \App\Models\Asignacion();
+            try {
+                $asignacionModel->create($inventario_id, $colaborador_id);
+                $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Equipo asignado correctamente.', 'icon' => 'success'];
+            } catch (\Exception $e) {
+                $_SESSION['mensaje_sa2'] = ['title' => '¡Error!', 'text' => 'No se pudo asignar el equipo. ' . $e->getMessage(), 'icon' => 'error'];
+            }
+
+            header('Location: ' . BASE_URL . 'index.php?route=inventario');
+            exit;
+        }
     }
 
     /**
@@ -186,7 +225,7 @@ class InventarioController extends BaseController
                 $_SESSION['mensaje_sa2'] = ['title' => 'Error', 'text' => 'Hubo un problema con la subida.', 'icon' => 'error'];
             }
         }
-        
+
         header('Location: ' . BASE_URL . 'index.php?route=inventario&action=showImages&id=' . $inventario_id);
         exit;
     }
