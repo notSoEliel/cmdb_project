@@ -81,8 +81,12 @@ class ColaboradorController extends BaseController
     public function store()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            (new Colaborador())->save($_POST);
-            $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Colaborador creado.', 'icon' => 'success'];
+            try {
+                (new Colaborador())->save($_POST);
+                $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Colaborador creado.', 'icon' => 'success'];
+            } catch (\Throwable $e) {
+                handleException($e); // <-- LLAMAMOS A NUESTRO HELPER
+            }
             header('Location: ' . BASE_URL . 'index.php?route=colaboradores');
             exit;
         }
@@ -91,11 +95,15 @@ class ColaboradorController extends BaseController
     /**
      * Procesa la actualización de un colaborador existente.
      */
-    public function update()
+   public function update()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            (new Colaborador())->save($_POST);
-            $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Colaborador actualizado.', 'icon' => 'success'];
+            try {
+                (new Colaborador())->save($_POST);
+                $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Colaborador actualizado.', 'icon' => 'success'];
+            } catch (\Throwable $e) {
+                handleException($e); // <-- LLAMAMOS A NUESTRO HELPER
+            }
             header('Location: ' . BASE_URL . 'index.php?route=colaboradores');
             exit;
         }

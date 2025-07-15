@@ -129,8 +129,17 @@ class InventarioController extends BaseController
     public function showAssignForm()
     {
         $inventario_id = (int)($_GET['id'] ?? 0);
+        $equipo = (new Inventario())->findById($inventario_id);
+
+        // Si no se encuentra el equipo, muestra la página 404
+        if (!$equipo) {
+            http_response_code(404);
+            require_once '../src/Views/error-404.php';
+            exit;
+        }
+
         $this->render('Views/inventario/asignar.php', [
-            'equipo' => (new Inventario())->findById($inventario_id),
+            'equipo' => $equipo,
             'colaboradores' => (new Colaborador())->findAll(),
             'pageTitle' => 'Asignar Equipo'
         ]);
@@ -180,9 +189,13 @@ class InventarioController extends BaseController
     public function store()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $inventarioModel = new Inventario();
-            $inventarioModel->save($_POST);
-            $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Equipo guardado.', 'icon' => 'success'];
+            try {
+                $inventarioModel = new Inventario();
+                $inventarioModel->save($_POST);
+                $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Equipo guardado.', 'icon' => 'success'];
+            } catch (\Throwable $e) {
+                handleException($e); // <-- LLAMAMOS A NUESTRO HELPER
+            }
             header('Location: ' . BASE_URL . 'index.php?route=inventario');
             exit;
         }
@@ -194,9 +207,13 @@ class InventarioController extends BaseController
     public function update()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $inventarioModel = new Inventario();
-            $inventarioModel->save($_POST);
-            $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Equipo actualizado.', 'icon' => 'success'];
+            try {
+                $inventarioModel = new Inventario();
+                $inventarioModel->save($_POST);
+                $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Equipo actualizado.', 'icon' => 'success'];
+            } catch (\Throwable $e) {
+                handleException($e); // <-- LLAMAMOS A NUESTRO HELPER
+            }
             header('Location: ' . BASE_URL . 'index.php?route=inventario');
             exit;
         }

@@ -40,6 +40,17 @@ class Inventario extends BaseModel
 
     public function save($data)
     {
+        $currentId = !empty($data['id']) ? (int)$data['id'] : null;
+
+
+        // --- VALIDACIÓN PREVIA ---
+        // Verifica que el número de serie no esté ya registrado en otro equipo.
+        if (!empty($data['serie']) && $this->exists('serie', $data['serie'], $currentId)) {
+            throw new \Exception("El número de serie '{$data['serie']}' ya está registrado en otro equipo.");
+        }
+        // --- FIN DE VALIDACIÓN ---
+
+        // Sanitización de datos (sin cambios)
         $costo = !empty($data['costo']) ? $data['costo'] : 0.00;
         $depreciacion = !empty($data['tiempo_depreciacion_anios']) ? $data['tiempo_depreciacion_anios'] : 0;
         $fecha_ingreso = !empty($data['fecha_ingreso']) ? $data['fecha_ingreso'] : null;
@@ -57,12 +68,11 @@ class Inventario extends BaseModel
             'fecha_ingreso' => $fecha_ingreso,
             'tiempo_depreciacion_anios' => $depreciacion,
             'categoria_id' => $data['categoria_id'],
-            // 'estado' => $data['estado'] ?? 'En Stock', <-- LÍNEA ELIMINADA
         ];
 
-        if (isset($data['id']) && !empty($data['id'])) {
-            $params['id'] = $data['id'];
-            // Se quita 'estado' de la consulta UPDATE
+        if ($currentId) {
+            // Actualizar (la consulta UPDATE no modifica el estado)
+            $params['id'] = $currentId;
             $sql = "UPDATE {$this->tableName} SET
                         nombre_equipo = :nombre_equipo, marca = :marca, modelo = :modelo, serie = :serie,
                         costo = :costo, fecha_ingreso = :fecha_ingreso,
@@ -70,11 +80,12 @@ class Inventario extends BaseModel
                         categoria_id = :categoria_id
                     WHERE id = :id";
         } else {
-            // En la creación, sí se debe incluir el estado por defecto.
+            // Crear (se establece el estado por defecto)
             $params['estado'] = 'En Stock';
             $sql = "INSERT INTO {$this->tableName} (nombre_equipo, marca, modelo, serie, costo, fecha_ingreso, tiempo_depreciacion_anios, categoria_id, estado)
                     VALUES (:nombre_equipo, :marca, :modelo, :serie, :costo, :fecha_ingreso, :tiempo_depreciacion_anios, :categoria_id, :estado)";
         }
+
         Database::getInstance()->query($sql, $params);
         return true;
     }

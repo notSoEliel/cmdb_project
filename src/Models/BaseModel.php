@@ -173,4 +173,28 @@ abstract class BaseModel
         Database::getInstance()->query($sql, ['id' => $id]);
         return true;
     }
+
+    /**
+     * Verifica si un valor ya existe en una columna específica.
+     * Es capaz de excluir un ID para poder usarse en actualizaciones.
+     *
+     * @param string $column El nombre de la columna a verificar.
+     * @param mixed $value El valor a buscar.
+     * @param int|null $excludeId Un ID para excluir de la búsqueda (útil al actualizar).
+     * @return bool True si el valor existe, false si no.
+     */
+    public function exists(string $column, $value, ?int $excludeId = null): bool
+    {
+        $prefix = $this->tableAlias ?? $this->tableName;
+        $sql = "SELECT id FROM {$this->tableName} AS {$prefix} WHERE {$prefix}.{$column} = :value";
+        $params = [':value' => $value];
+
+        if ($excludeId !== null) {
+            $sql .= " AND {$prefix}.id != :excludeId";
+            $params[':excludeId'] = $excludeId;
+        }
+
+        $result = Database::getInstance()->query($sql, $params)->find();
+        return $result !== false;
+    }
 }

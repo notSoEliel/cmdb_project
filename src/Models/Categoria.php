@@ -21,12 +21,21 @@ class Categoria extends BaseModel
      * @param array $data Los datos de la categoría ['nombre', 'id' (opcional)].
      * @return bool True si la operación fue exitosa.
      */
-    public function save($data)
+public function save($data)
     {
-        if (isset($data['id']) && !empty($data['id'])) {
+        $currentId = !empty($data['id']) ? (int)$data['id'] : null;
+
+        // --- VALIDACIÓN PREVIA ---
+        // Verifica si ya existe otra categoría con el mismo nombre.
+        if ($this->exists('nombre', $data['nombre'], $currentId)) {
+            throw new \Exception("La categoría '{$data['nombre']}' ya existe.");
+        }
+        // --- FIN DE VALIDACIÓN ---
+
+        if ($currentId) {
             // Actualizar
             $sql = "UPDATE {$this->tableName} SET nombre = :nombre WHERE id = :id";
-            $params = ['id' => $data['id'], 'nombre' => $data['nombre']];
+            $params = ['id' => $currentId, 'nombre' => $data['nombre']];
         } else {
             // Crear
             $sql = "INSERT INTO {$this->tableName} (nombre) VALUES (:nombre)";

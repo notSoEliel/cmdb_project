@@ -75,8 +75,12 @@ class CategoriaController extends BaseController
     public function store()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            (new Categoria())->save($_POST);
-            $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Categoría creada.', 'icon' => 'success'];
+            try {
+                (new Categoria())->save($_POST);
+                $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Categoría creada.', 'icon' => 'success'];
+            } catch (\Throwable $e) {
+                handleException($e); // <-- LLAMAMOS A NUESTRO HELPER
+            }
             header('Location: ' . BASE_URL . 'index.php?route=categorias');
             exit;
         }
@@ -88,8 +92,12 @@ class CategoriaController extends BaseController
     public function update()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            (new Categoria())->save($_POST);
-            $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Categoría actualizada.', 'icon' => 'success'];
+            try {
+                (new Categoria())->save($_POST);
+                $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Categoría actualizada.', 'icon' => 'success'];
+            } catch (\Throwable $e) {
+                handleException($e); // <-- LLAMAMOS A NUESTRO HELPER
+            }
             header('Location: ' . BASE_URL . 'index.php?route=categorias');
             exit;
         }

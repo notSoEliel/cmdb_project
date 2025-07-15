@@ -34,6 +34,21 @@ class Colaborador extends BaseModel
      */
     public function save($data)
     {
+        // Se obtiene el ID actual (si estamos editando) para excluirlo de la comprobación.
+        $currentId = !empty($data['id']) ? (int)$data['id'] : null;
+
+        // --- INICIO DE VALIDACIONES PREVIAS ---
+        // Se usa nuestro nuevo método reutilizable para verificar duplicados.
+        if ($this->exists('email', $data['email'], $currentId)) {
+            // Se lanza una excepción con un mensaje claro.
+            throw new \Exception("El email '{$data['email']}' ya está en uso por otro colaborador.");
+        }
+        if ($this->exists('identificacion_unica', $data['identificacion_unica'], $currentId)) {
+            throw new \Exception("La identificación '{$data['identificacion_unica']}' ya está registrada.");
+        }
+        // --- FIN DE VALIDACIONES PREVIAS ---
+
+        // Si pasa las validaciones, se procede con la lógica de guardado.
         $params = [
             'nombre' => $data['nombre'],
             'apellido' => $data['apellido'],
@@ -43,25 +58,22 @@ class Colaborador extends BaseModel
             'telefono' => $data['telefono'],
         ];
 
-        // Hashear la contraseña solo si se proporciona una nueva al editar.
         if (!empty($data['password'])) {
             $params['password_hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
         }
 
-        if (isset($data['id']) && !empty($data['id'])) {
-            // --- Actualizar un colaborador existente ---
-            $params['id'] = $data['id'];
+        if ($currentId) {
+            // Actualizar
+            $params['id'] = $currentId;
             $setClauses = [];
             foreach ($params as $key => $value) {
-                if ($key !== 'id') {
-                    $setClauses[] = "$key = :$key";
-                }
+                if ($key !== 'id') $setClauses[] = "$key = :$key";
             }
             $sql = "UPDATE {$this->tableName} SET " . implode(', ', $setClauses) . " WHERE id = :id";
         } else {
-            // --- Crear un nuevo colaborador ---
+            // Crear
             if (empty($params['password_hash'])) {
-                die("El campo de contraseña es obligatorio al crear un nuevo colaborador.");
+                throw new \Exception("La contraseña es obligatoria al crear un nuevo colaborador.");
             }
             $columns = implode(', ', array_keys($params));
             $placeholders = ':' . implode(', :', array_keys($params));
