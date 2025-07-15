@@ -2,23 +2,27 @@
 
 namespace App\Controllers;
 
+// Se añaden todos los modelos que este controlador necesita
 use App\Models\Inventario;
 use App\Models\Categoria;
+use App\Models\Colaborador;
+use App\Models\Asignacion;
 use App\Models\InventarioImagen;
 
 /**
  * Class InventarioController
  *
- * Gestiona todas las acciones relacionadas con el módulo de inventario,
- * incluyendo la visualización de la lista, la creación, actualización,
- * eliminación de equipos y la gestión de sus imágenes.
+ * Gestiona todas las acciones para el módulo de inventario.
+ * Es el controlador más complejo, ya que maneja la lógica de
+ * asignaciones, imágenes, filtros y el CRUD básico.
  */
 class InventarioController extends BaseController
 {
     /**
-     * Muestra la página principal del inventario.
-     * Recoge los parámetros de la URL para la búsqueda, paginación y ordenamiento,
-     * prepara una configuración para la tabla dinámica y renderiza la vista.
+     * Muestra la página principal del inventario con la tabla dinámica.
+     * Es responsable de recopilar todos los parámetros de la URL (para filtros,
+     * búsqueda, paginación y orden) y de preparar una configuración
+     * detallada para el componente de vista de tabla reutilizable.
      */
     public function index()
     {
@@ -28,16 +32,24 @@ class InventarioController extends BaseController
         $search = $_GET['search'] ?? '';
         $sort = $_GET['sort'] ?? 'id';
         $order = $_GET['order'] ?? 'asc';
+
+        // Se inicializa el array de filtros.
         $filters = [];
+        // Se añade un filtro si se ha seleccionado una categoría.
         if (!empty($_GET['categoria_id'])) {
-            $filters['categoria_id'] = $_GET['categoria_id'];
+            $filters['i.categoria_id'] = $_GET['categoria_id'];
+        }
+        // Se añade un filtro si se ha seleccionado un colaborador.
+        if (!empty($_GET['colaborador_id'])) {
+            $filters['a.colaborador_id'] = $_GET['colaborador_id'];
         }
 
         // --- 2. Preparación de Modelos y Opciones ---
         $inventarioModel = new Inventario();
         $categoriaModel = new Categoria();
+        $colaboradorModel = new Colaborador();
 
-        // Array de opciones para pasar a los métodos del modelo
+        // Array de opciones consolidadas para pasar a los métodos del modelo.
         $options = [
             'page' => $page,
             'perPage' => $perPage,
@@ -45,8 +57,8 @@ class InventarioController extends BaseController
             'order' => $order,
             'search' => $search,
             'filters' => $filters,
-            // Le indicamos al modelo qué columnas queremos seleccionar con el JOIN
-            'selectClause' => 'i.*, c.nombre as nombre_categoria'
+            // Se define el SELECT para incluir el nombre de la categoría y del colaborador.
+            'selectClause' => 'i.*, c.nombre as nombre_categoria, CONCAT(co.nombre, " ", co.apellido) as nombre_colaborador, a.id as asignacion_id'
         ];
 
         // --- 3. Obtención de Datos y Cálculo de Paginación ---
@@ -57,13 +69,18 @@ class InventarioController extends BaseController
         // --- 4. Configuración para la Tabla Reutilizable ---
         $tableConfig = [
             'columns' => [
+                // 'field' se usa para mostrar el dato; 'sort_by' para ordenar en la BD.
                 ['header' => '', 'field' => 'thumbnail_path', 'type' => 'image'],
-                ['header' => 'ID', 'field' => 'id'],
-                ['header' => 'Equipo', 'field' => 'nombre_equipo'],
-                ['header' => 'Categoría', 'field' => 'nombre_categoria'],
-                ['header' => 'Marca', 'field' => 'marca'],
-                ['header' => 'Serie', 'field' => 'serie'],
-                ['header' => 'Estado', 'field' => 'estado'],
+                ['header' => 'ID', 'field' => 'id', 'sort_by' => 'i.id'],
+                ['header' => 'Equipo', 'field' => 'nombre_equipo', 'sort_by' => 'i.nombre_equipo'],
+                ['header' => 'Categoría', 'field' => 'nombre_categoria', 'sort_by' => 'nombre_categoria'],
+                ['header' => 'Marca', 'field' => 'marca', 'sort_by' => 'i.marca'],
+                ['header' => 'Modelo', 'field' => 'modelo'], // No ordenable en este ejemplo
+                ['header' => 'Serie', 'field' => 'serie'],   // No ordenable
+                ['header' => 'Costo', 'field' => 'costo', 'sort_by' => 'i.costo'],
+                ['header' => 'Fecha Ingreso', 'field' => 'fecha_ingreso', 'sort_by' => 'i.fecha_ingreso'],
+                ['header' => 'Asignado a', 'field' => 'nombre_colaborador', 'sort_by' => 'nombre_colaborador'],
+                ['header' => 'Estado', 'field' => 'estado', 'sort_by' => 'i.estado'],
             ],
             'data' => $inventarios,
             'pagination' => [
@@ -77,9 +94,23 @@ class InventarioController extends BaseController
                 'filters' => $filters
             ],
             'actions' => [
-                'edit_route' => 'inventario&action=index', // La edición se maneja en la misma página
+                'edit_route' => 'inventario&action=index',
                 'delete_route' => 'inventario&action=destroy',
-                'image_route' => 'inventario&action=showImages'
+                'image_route' => 'inventario&action=showImages',
+                'unassign_route' => 'inventario&action=unassign' // Nueva acción para des-asignar
+            ],
+            // Configuración para el nuevo dropdown de filtro
+            'dropdown_filters' => [
+                'categoria' => [
+                    'label' => 'Categoría',
+                    'name' => 'categoria_id',
+                    'options' => (new Categoria())->findAll() // Obtenemos todas las categorías
+                ],
+                'colaborador' => [
+                    'label' => 'Colaborador',
+                    'name' => 'colaborador_id',
+                    'options' => array_map(fn($c) => ['id' => $c['id'], 'nombre' => $c['nombre'] . ' ' . $c['apellido']], (new Colaborador())->findAll())
+                ]
             ]
         ];
 
@@ -87,24 +118,20 @@ class InventarioController extends BaseController
         $this->render('Views/inventario/index.php', [
             'pageTitle' => 'Gestionar Inventario',
             'formId' => 'form-inventario',
-            'categorias' => $categoriaModel->findAll(), // Para el dropdown del formulario
-            'tableConfig' => $tableConfig // Pasamos toda la config a la vista
+            'categorias' => $categoriaModel->findAll(), // Para el formulario de agregar/editar
+            'tableConfig' => $tableConfig // Pasamos toda la configuración a la vista
         ]);
     }
 
     /**
-     * Muestra el formulario para asignar un equipo.
-     * Obtiene los detalles del equipo y la lista de todos los colaboradores.
+     * Muestra el formulario para asignar un equipo a un colaborador.
      */
     public function showAssignForm()
     {
         $inventario_id = (int)($_GET['id'] ?? 0);
-        $inventarioModel = new Inventario();
-        $colaboradorModel = new \App\Models\Colaborador();
-
         $this->render('Views/inventario/asignar.php', [
-            'equipo' => $inventarioModel->findById($inventario_id),
-            'colaboradores' => $colaboradorModel->findAll(), // Para el <select>
+            'equipo' => (new Inventario())->findById($inventario_id),
+            'colaboradores' => (new Colaborador())->findAll(),
             'pageTitle' => 'Asignar Equipo'
         ]);
     }
@@ -117,15 +144,31 @@ class InventarioController extends BaseController
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $inventario_id = (int)$_POST['inventario_id'];
             $colaborador_id = (int)$_POST['colaborador_id'];
-
-            $asignacionModel = new \App\Models\Asignacion();
             try {
-                $asignacionModel->create($inventario_id, $colaborador_id);
-                $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Equipo asignado correctamente.', 'icon' => 'success'];
+                (new Asignacion())->create($inventario_id, $colaborador_id);
+                $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Equipo asignado.', 'icon' => 'success'];
             } catch (\Exception $e) {
-                $_SESSION['mensaje_sa2'] = ['title' => '¡Error!', 'text' => 'No se pudo asignar el equipo. ' . $e->getMessage(), 'icon' => 'error'];
+                $_SESSION['mensaje_sa2'] = ['title' => '¡Error!', 'text' => 'No se pudo asignar el equipo: ' . $e->getMessage(), 'icon' => 'error'];
             }
+            header('Location: ' . BASE_URL . 'index.php?route=inventario');
+            exit;
+        }
+    }
 
+    /**
+     * Procesa la des-asignación de un equipo.
+     */
+    public function unassign()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $asignacion_id = (int)$_POST['asignacion_id'];
+            $inventario_id = (int)$_POST['inventario_id'];
+            try {
+                (new Asignacion())->unassign($asignacion_id, $inventario_id);
+                $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Equipo des-asignado.', 'icon' => 'success'];
+            } catch (\Exception $e) {
+                $_SESSION['mensaje_sa2'] = ['title' => '¡Error!', 'text' => 'No se pudo des-asignar el equipo.', 'icon' => 'error'];
+            }
             header('Location: ' . BASE_URL . 'index.php?route=inventario');
             exit;
         }

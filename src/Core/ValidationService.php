@@ -36,7 +36,11 @@ class ValidationService
         $script .= "        errorElement: 'div',\n";
         $script .= "        errorClass: 'invalid-feedback',\n"; // Clase de Bootstrap para errores
         $script .= "        errorPlacement: function(error, element) {\n";
-        $script .= "            error.insertAfter(element);\n"; // Coloca el error justo después del campo
+        $script .= "            if (element.parent().hasClass('input-group')) {\n";
+        $script .= "                error.insertAfter(element.parent());\n"; // Si está en un input-group, pon el error después del grupo
+        $script .= "            } else {\n";
+        $script .= "                error.insertAfter(element);\n"; // Comportamiento normal para otros campos
+        $script .= "            }\n";
         $script .= "        },\n";
         $script .= "        highlight: function(element) {\n";
         $script .= "            $(element).addClass('is-invalid');\n"; // Clase de Bootstrap para resaltar el campo

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Vista principal para la Gestión de Colaboradores.
  *
@@ -53,7 +54,13 @@ if (isset($_GET['editar_id']) && !empty($_GET['editar_id'])) {
                 </div>
                 <div class="col-md-12 form-group">
                     <label class="form-label" for="password">Contraseña</label>
-                    <input id="password" type="password" class="form-control" name="password" placeholder="Dejar en blanco para no cambiar">
+                    <div class="input-group">
+                        <input id="password" type="password" class="form-control" name="password" placeholder="Dejar en blanco para no cambiar">
+                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                            <i class="bi bi-eye-fill" id="togglePasswordIcon"></i>
+                        </button>
+                    </div>
+                    <small class="form-text text-muted"><?= $colaboradorActual ? 'Solo ingresa una nueva contraseña si deseas cambiarla.' : '' ?></small>
                 </div>
             </div>
             <div class="mt-3">

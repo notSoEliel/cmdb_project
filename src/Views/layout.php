@@ -24,6 +24,7 @@
             flex-grow: 1;
             padding: 2rem;
             background-color: #f8f9fa;
+            min-width: 0;
         }
 
         label.error {
@@ -34,6 +35,33 @@
         input.error,
         select.error {
             border-color: #dc3545 !important;
+        }
+
+        .table-responsive-sticky {
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .table-responsive-sticky th,
+        .table-responsive-sticky td {
+            white-space: nowrap;
+        }
+
+        .sticky-col {
+            position: -webkit-sticky;
+            position: sticky;
+            background-color: #ffffff;
+            /* Un fondo blanco se ve mejor en las celdas fijas */
+        }
+
+        .first-col {
+            left: 0;
+            z-index: 2;
+        }
+
+        .last-col {
+            right: 0;
+            z-index: 2;
         }
     </style>
 </head>
@@ -89,6 +117,8 @@
     </script>
 
     <?= $validationScript ?? '' ?>
+
+    <script src="<?= BASE_URL ?>js/app.js"></script> </body>
 </body>
 
 </html>

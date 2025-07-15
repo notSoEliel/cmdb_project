@@ -50,5 +50,20 @@ class Asignacion
         }
     }
 
-    // Aquí añadiremos más adelante el método para des-asignar un equipo.
+    public function unassign(int $asignacion_id, int $inventario_id): bool
+    {
+        $db = Database::getInstance();
+        try {
+            $db->beginTransaction();
+            // 1. Marca la asignación como devuelta
+            $db->query("UPDATE asignaciones SET fecha_devolucion = CURDATE() WHERE id = :asignacion_id", ['asignacion_id' => $asignacion_id]);
+            // 2. Actualiza el estado del equipo
+            $db->query("UPDATE inventario SET estado = 'En Stock' WHERE id = :inventario_id", ['inventario_id' => $inventario_id]);
+            $db->commit();
+            return true;
+        } catch (\Exception $e) {
+            $db->rollBack();
+            throw $e;
+        }
+    }
 }

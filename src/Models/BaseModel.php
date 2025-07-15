@@ -38,27 +38,30 @@ abstract class BaseModel
         return $result['total'] ?? 0;
     }
 
+    /**
+     * Obtiene todos los registros con la lógica de ordenamiento corregida.
+     */
     public function findAll(array $options = []): array
     {
-        $sortColumn = "{$this->tableName}.id";
+        $prefix = $this->tableAlias ?? $this->tableName;
+
+        // --- Lógica de Ordenamiento Corregida ---
+        $sortColumn = "{$prefix}.id"; // Valor por defecto con prefijo
+        // Comprueba si el 'sort' solicitado está en la lista de columnas permitidas.
         if (!empty($options['sort']) && in_array($options['sort'], $this->allowedSortColumns)) {
-            $sortColumn = "{$this->tableName}." . $options['sort'];
+            $sortColumn = $options['sort'];
         }
         $sortOrder = (!empty($options['order']) && in_array(strtoupper($options['order']), ['ASC', 'DESC'])) ? strtoupper($options['order']) : 'ASC';
 
+        // --- Lógica de Paginación ---
         $perPage = $options['perPage'] ?? 10;
         $page = $options['page'] ?? 1;
         $offset = ($page - 1) * $perPage;
 
-        $sql = "SELECT {$this->selectClause} FROM {$this->tableName}";
-        $sql .= " " . $this->joins; // Añadir los joins
+        $sql = "SELECT {$prefix}.* FROM {$this->tableName} as {$prefix}";
 
         list($whereClause, $params) = $this->buildWhereClause($options);
         $sql .= $whereClause;
-
-        if (!empty($this->groupBy)) {
-            $sql .= " GROUP BY {$this->groupBy}";
-        }
 
         $sql .= " ORDER BY {$sortColumn} {$sortOrder} LIMIT {$perPage} OFFSET {$offset}";
 
@@ -68,36 +71,47 @@ abstract class BaseModel
 
 
     /**
-     * Construye la cláusula WHERE y los parámetros para la consulta.
-     * @param array $options
-     * @return array [string $whereClause, array $params]
+     * Construye la cláusula WHERE y los parámetros para la consulta de forma segura.
+     * Ahora es capaz de manejar nombres de columna con alias (ej: 'a.colaborador_id').
+     *
+     * @param array $options Opciones de búsqueda y filtro.
+     * @return array Un array con la cláusula WHERE y los parámetros.
      */
     protected function buildWhereClause(array $options = []): array
     {
-        // Usa el alias si está definido, si no, usa el nombre de la tabla.
         $prefix = $this->tableAlias ?? $this->tableName;
-
         $whereConditions = [];
         $params = [];
 
-        // Filtros específicos
+        // --- Lógica de Filtros Específicos ---
         if (!empty($options['filters'])) {
             foreach ($options['filters'] as $column => $value) {
-                $placeholder = ":filter_{$column}";
-                // AHORA USA EL PREFIJO CORRECTO (ej: 'i.categoria_id')
-                $whereConditions[] = "{$prefix}.{$column} = {$placeholder}";
+                // Se crea un nombre de placeholder seguro, reemplazando '.' por '_'
+                $placeholderName = str_replace('.', '_', $column);
+                $placeholder = ":filter_{$placeholderName}";
+
+                // --- INICIO DE LA CORRECCIÓN ---
+                // Si la columna ya contiene un punto (ej: 'a.colaborador_id'), se usa tal cual.
+                if (strpos($column, '.') !== false) {
+                    $finalColumn = $column;
+                } else {
+                    // Si no, se le añade el prefijo por defecto (ej: 'i.categoria_id').
+                    $finalColumn = "{$prefix}.{$column}";
+                }
+                // --- FIN DE LA CORRECCIÓN ---
+
+                $whereConditions[] = "{$finalColumn} = {$placeholder}";
                 $params[$placeholder] = $value;
             }
         }
 
-        // Búsqueda de texto libre
+        // --- Lógica de Búsqueda de Texto Libre ---
         if (!empty($options['search']) && !empty($this->searchableColumns)) {
             $searchTerm = '%' . $options['search'] . '%';
             $searchConditions = [];
 
             foreach ($this->searchableColumns as $index => $column) {
                 $placeholder = ":searchTerm{$index}";
-                // AHORA USA EL PREFIJO CORRECTO (ej: 'i.nombre_equipo')
                 $searchConditions[] = "{$prefix}.{$column} LIKE {$placeholder}";
                 $params[$placeholder] = $searchTerm;
             }

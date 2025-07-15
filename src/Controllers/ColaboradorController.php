@@ -13,18 +13,18 @@ use App\Models\Colaborador;
 class ColaboradorController extends BaseController
 {
     /**
-     * Muestra la página principal de Colaboradores con la tabla dinámica.
+     * Muestra la página principal de Colaboradores con la tabla dinámica completa.
      */
     public function index()
     {
-        // 1. Recopila los parámetros de la URL para la paginación, búsqueda y orden.
+        // 1. Recopilación de parámetros (sin cambios)
         $page = (int)($_GET['page'] ?? 1);
         $perPage = (int)($_GET['perPage'] ?? 10);
         $search = $_GET['search'] ?? '';
         $sort = $_GET['sort'] ?? 'id';
         $order = $_GET['order'] ?? 'asc';
 
-        // 2. Prepara las opciones y el modelo.
+        // 2. Preparación del modelo y opciones (sin cambios)
         $colaboradorModel = new Colaborador();
         $options = [
             'page' => $page,
@@ -34,20 +34,21 @@ class ColaboradorController extends BaseController
             'search' => $search,
         ];
 
-        // 3. Obtiene los datos paginados y el conteo total de registros.
+        // 3. Obtención de datos (sin cambios)
         $colaboradores = $colaboradorModel->findAll($options);
         $totalRecords = $colaboradorModel->countFiltered($options);
         $totalPages = ceil($totalRecords / $perPage);
 
-        // 4. Prepara la configuración para el componente de tabla reutilizable.
+        // 4. Configuración para la Tabla Reutilizable
         $tableConfig = [
             'columns' => [
-                ['header' => 'ID', 'field' => 'id'],
-                ['header' => 'Nombre', 'field' => 'nombre'],
-                ['header' => 'Apellido', 'field' => 'apellido'],
-                ['header' => 'Email', 'field' => 'email'],
-                ['header' => 'Ubicación', 'field' => 'ubicacion'],
-                ['header' => 'Teléfono', 'field' => 'telefono'],
+                ['header' => 'ID', 'field' => 'id', 'sort_by' => 'co.id'],
+                ['header' => 'Nombre', 'field' => 'nombre', 'sort_by' => 'co.nombre'],
+                ['header' => 'Apellido', 'field' => 'apellido', 'sort_by' => 'co.apellido'],
+                ['header' => 'ID Único', 'field' => 'identificacion_unica'], // No ordenable en este ejemplo
+                ['header' => 'Email', 'field' => 'email', 'sort_by' => 'co.email'],
+                ['header' => 'Ubicación', 'field' => 'ubicacion'], // No ordenable
+                ['header' => 'Teléfono', 'field' => 'telefono'],   // No ordenable
             ],
             'data' => $colaboradores,
             'pagination' => [
@@ -58,16 +59,15 @@ class ColaboradorController extends BaseController
                 'search' => $search,
                 'sort' => $sort,
                 'order' => $order,
-                'filters' => [] // No hay filtros específicos para colaboradores por ahora
+                'filters' => []
             ],
             'actions' => [
                 'edit_route' => 'colaboradores&action=index',
                 'delete_route' => 'colaboradores&action=destroy',
-                // No hay ruta de imágenes para colaboradores, así que no la definimos.
             ]
         ];
-        
-        // 5. Renderiza la vista principal, pasándole la configuración de la tabla.
+
+        // 5. Renderizado de la Vista (sin cambios)
         $this->render('Views/colaboradores/index.php', [
             'pageTitle' => 'Gestionar Colaboradores',
             'formId' => 'form-colaborador',

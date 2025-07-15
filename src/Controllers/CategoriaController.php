@@ -41,8 +41,9 @@ class CategoriaController extends BaseController
         // 4. Prepara la configuración para la tabla reutilizable.
         $tableConfig = [
             'columns' => [
-                ['header' => 'ID', 'field' => 'id'],
-                ['header' => 'Nombre', 'field' => 'nombre'],
+                // 'field' es para mostrar el dato, 'sort_by' es para ordenar
+                ['header' => 'ID', 'field' => 'id', 'sort_by' => 'c.id'],
+                ['header' => 'Nombre', 'field' => 'nombre', 'sort_by' => 'c.nombre'],
             ],
             'data' => $categorias,
             'pagination' => [
