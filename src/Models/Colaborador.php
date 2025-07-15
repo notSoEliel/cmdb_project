@@ -11,15 +11,9 @@ use App\Core\Database;
  */
 class Colaborador extends BaseModel
 {
-    /**
-     * @var string El nombre de la tabla en la base de datos.
-     */
     protected $tableName = 'colaboradores';
-    // Le damos un alias a la tabla
     protected $tableAlias = 'co';
-    /**
-     * @var array Columnas permitidas para el ordenamiento dinámico.
-     */
+
     protected $allowedSortColumns = [
         'co.id',
         'co.nombre',
@@ -27,10 +21,8 @@ class Colaborador extends BaseModel
         'co.identificacion_unica',
         'co.email'
     ];
-    /**
-     * @var array Columnas en las que se realizará la búsqueda de texto libre.
-     */
-    protected $searchableColumns = ['nombre', 'apellido', 'identificacion_unica', 'email', 'ubicacion', 'telefono'];
+
+    protected $searchableColumns = ['nombre', 'apellido', 'identificacion_unica', 'email'];
 
     /**
      * Guarda (Crea o Actualiza) un registro de colaborador.

@@ -133,9 +133,6 @@ if (!empty($pagination['filters'])) {
                                 <?php endforeach; ?>
 
                                 <td class="text-end text-nowrap sticky-col last-col">
-                                    <?php // --- FIN DE LA MODIFICACIÓN --- 
-                                    ?>
-
                                     <?php if ($currentRoute === 'inventario') : ?>
                                         <?php if ($row['estado'] === 'En Stock') : ?>
                                             <a href="?route=inventario&action=showAssignForm&id=<?= $row['id'] ?>" class="btn btn-sm btn-success" title="Asignar Equipo"><i class="bi bi-person-plus-fill"></i></a>
@@ -156,7 +153,11 @@ if (!empty($pagination['filters'])) {
                                         <a href="?route=<?= $actions['image_route'] ?>&id=<?= $row['id'] ?>" class="btn btn-sm btn-info" title="Gestionar Imágenes"><i class="bi bi-images"></i></a>
                                     <?php endif; ?>
 
-                                    <a href="?route=<?= $actions['edit_route'] ?>&editar_id=<?= $row['id'] ?>" class="btn btn-sm btn-warning" title="Editar"><i class="bi bi-pencil-fill"></i></a>
+                                    <?php
+                                    $editParams = array_merge($queryParams, ['editar_id' => $row['id']]);
+                                    ?>
+                                    <a href="?<?= http_build_query($editParams) ?>" class="btn btn-sm btn-warning" title="Editar"><i class="bi bi-pencil-fill"></i></a>
+
                                     <form action="?route=<?= $actions['delete_route'] ?>" method="POST" class="d-inline form-delete">
                                         <input type="hidden" name="id" value="<?= $row['id'] ?>">
                                         <button type="submit" class="btn btn-sm btn-danger" title="Eliminar"><i class="bi bi-trash-fill"></i></button>

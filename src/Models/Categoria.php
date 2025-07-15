@@ -10,21 +10,9 @@ use App\Core\Database;
  */
 class Categoria extends BaseModel
 {
-    /**
-     * @var string El nombre de la tabla asociada a este modelo.
-     */
     protected $tableName = 'categorias';
-    // Le damos un alias a la tabla
     protected $tableAlias = 'c';
-
-    /**
-     * @var array Columnas por las que se permite ordenar en esta tabla.
-     */
     protected $allowedSortColumns = ['c.id', 'c.nombre'];
-
-    /**
-     * @var array Columnas en las que se realizará la búsqueda de texto libre.
-     */
     protected $searchableColumns = ['nombre'];
 
     /**

@@ -9,78 +9,34 @@ class Inventario extends BaseModel
     protected $tableName = 'inventario';
     protected $tableAlias = 'i';
 
-    /**
-     * @var array Columnas permitidas para el ordenamiento.
-     * Se especifican con su alias de tabla para evitar ambigüedades.
-     */
+    // Se definen todas las propiedades que el BaseModel usará para construir la consulta
+    public function __construct()
+    {
+        parent::__construct(); // Llama al constructor del padre
+        $this->selectClause = "i.*, 
+                               c.nombre as nombre_categoria, 
+                               CONCAT(co.nombre, ' ', co.apellido) as nombre_colaborador, 
+                               a.id as asignacion_id, 
+                               ii.ruta_imagen as thumbnail_path";
+
+        $this->joins = "LEFT JOIN categorias c ON i.categoria_id = c.id
+                        LEFT JOIN inventario_imagenes ii ON i.id = ii.inventario_id AND ii.es_thumbnail = 1
+                        LEFT JOIN asignaciones a ON a.id = (
+                            SELECT MAX(id) FROM asignaciones 
+                            WHERE inventario_id = i.id AND fecha_devolucion IS NULL
+                        )
+                        LEFT JOIN colaboradores co ON a.colaborador_id = co.id";
+    }
+
     protected $allowedSortColumns = [
         'i.id',
         'i.nombre_equipo',
-        'i.marca',
-        'i.costo',
-        'i.fecha_ingreso',
         'nombre_categoria',
         'nombre_colaborador',
         'i.estado'
     ];
 
     protected $searchableColumns = ['i.nombre_equipo', 'i.marca', 'i.modelo', 'i.serie', 'co.nombre', 'co.apellido'];
-
-    /**
-     * Cuenta los registros filtrados, corrigiendo la duplicación por JOIN.
-     */
-    public function countFiltered(array $options = []): int
-    {
-        $sql = "SELECT COUNT(DISTINCT i.id) as total
-                FROM {$this->tableName} i
-                LEFT JOIN categorias c ON i.categoria_id = c.id
-                LEFT JOIN asignaciones a ON i.id = a.inventario_id AND a.fecha_devolucion IS NULL
-                LEFT JOIN colaboradores co ON a.colaborador_id = co.id";
-
-        list($whereClause, $params) = $this->buildWhereClause($options);
-        $sql .= $whereClause;
-
-        $result = Database::getInstance()->query($sql, $params)->find();
-        return $result['total'] ?? 0;
-    }
-
-    /**
-     * Busca todos los registros, corrigiendo la duplicación y el ordenamiento.
-     */
-    public function findAll(array $options = []): array
-    {
-        $sortColumn = "i.id"; // Valor por defecto
-        // Ahora se comprueba que el sort solicitado esté en la lista de columnas permitidas explícitas.
-        if (!empty($options['sort']) && in_array($options['sort'], $this->allowedSortColumns)) {
-            $sortColumn = $options['sort'];
-        }
-        $sortOrder = (!empty($options['order']) && in_array(strtoupper($options['order']), ['ASC', 'DESC'])) ? strtoupper($options['order']) : 'ASC';
-
-        $perPage = (int)($options['perPage'] ?? 10);
-        $page = (int)($options['page'] ?? 1);
-        $offset = ($page - 1) * $perPage;
-
-        $sql = "SELECT i.*,
-                       c.nombre as nombre_categoria,
-                       CONCAT(co.nombre, ' ', co.apellido) as nombre_colaborador,
-                       a.id as asignacion_id,
-                       ii.ruta_imagen as thumbnail_path
-                FROM {$this->tableName} i
-                LEFT JOIN categorias c ON i.categoria_id = c.id
-                LEFT JOIN inventario_imagenes ii ON i.id = ii.inventario_id AND ii.es_thumbnail = 1
-                LEFT JOIN asignaciones a ON a.id = (
-                    SELECT MAX(id) FROM asignaciones 
-                    WHERE inventario_id = i.id AND fecha_devolucion IS NULL
-                )
-                LEFT JOIN colaboradores co ON a.colaborador_id = co.id";
-
-        list($whereClause, $params) = $this->buildWhereClause($options);
-        $sql .= $whereClause;
-
-        $sql .= " ORDER BY {$sortColumn} {$sortOrder} LIMIT {$perPage} OFFSET {$offset}";
-
-        return Database::getInstance()->query($sql, $params)->get();
-    }
 
     public function save($data)
     {

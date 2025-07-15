@@ -6,31 +6,35 @@ use App\Core\Database;
 
 abstract class BaseModel
 {
-
-    // Añade esta nueva propiedad al principio de la clase BaseModel
-    protected $tableAlias = null;
-
+    // Propiedades que los hijos DEBEN definir
     protected $tableName;
-    protected $allowedSortColumns = ['id'];
+    protected $tableAlias;
+    protected $allowedSortColumns = [];
     protected $searchableColumns = [];
 
-    // Nuevas propiedades para que los modelos hijos personalicen la consulta
+    // Propiedades que los hijos PUEDEN definir para personalizar la consulta
     protected $selectClause = '';
     protected $joins = '';
     protected $groupBy = '';
 
     public function __construct()
     {
-        // Si no se define una cláusula SELECT, se usa la por defecto
+        // Si el hijo no define un SELECT, se crea uno por defecto
         if (empty($this->selectClause)) {
-            $this->selectClause = "{$this->tableName}.*";
+            $this->selectClause = "{$this->tableAlias}.*";
         }
     }
 
+    /**
+     * Cuenta todos los registros que coinciden con los filtros.
+     * Este método ahora es 100% genérico.
+     */
     public function countFiltered(array $options = []): int
     {
-        $sql = "SELECT COUNT(DISTINCT {$this->tableName}.id) as total FROM {$this->tableName}";
-        $sql .= " " . $this->joins; // Añadir los joins
+        $sql = "SELECT COUNT(DISTINCT {$this->tableAlias}.id) as total 
+                FROM {$this->tableName} AS {$this->tableAlias}
+                {$this->joins}";
+
         list($whereClause, $params) = $this->buildWhereClause($options);
         $sql .= $whereClause;
 
@@ -39,29 +43,33 @@ abstract class BaseModel
     }
 
     /**
-     * Obtiene todos los registros con la lógica de ordenamiento corregida.
+     * Obtiene todos los registros. Este método ahora es 100% genérico.
      */
     public function findAll(array $options = []): array
     {
-        $prefix = $this->tableAlias ?? $this->tableName;
-
-        // --- Lógica de Ordenamiento Corregida ---
-        $sortColumn = "{$prefix}.id"; // Valor por defecto con prefijo
-        // Comprueba si el 'sort' solicitado está en la lista de columnas permitidas.
+        // Lógica de Ordenamiento
+        $sortColumn = "{$this->tableAlias}.id";
         if (!empty($options['sort']) && in_array($options['sort'], $this->allowedSortColumns)) {
             $sortColumn = $options['sort'];
         }
         $sortOrder = (!empty($options['order']) && in_array(strtoupper($options['order']), ['ASC', 'DESC'])) ? strtoupper($options['order']) : 'ASC';
 
-        // --- Lógica de Paginación ---
-        $perPage = $options['perPage'] ?? 10;
-        $page = $options['page'] ?? 1;
+        // Lógica de Paginación
+        $perPage = (int)($options['perPage'] ?? 10);
+        $page = (int)($options['page'] ?? 1);
         $offset = ($page - 1) * $perPage;
 
-        $sql = "SELECT {$prefix}.* FROM {$this->tableName} as {$prefix}";
+        // Construcción de la consulta usando las piezas del modelo hijo
+        $sql = "SELECT {$this->selectClause} 
+                FROM {$this->tableName} AS {$this->tableAlias} 
+                {$this->joins}";
 
         list($whereClause, $params) = $this->buildWhereClause($options);
         $sql .= $whereClause;
+
+        if (!empty($this->groupBy)) {
+            $sql .= " GROUP BY {$this->groupBy}";
+        }
 
         $sql .= " ORDER BY {$sortColumn} {$sortOrder} LIMIT {$perPage} OFFSET {$offset}";
 
@@ -83,23 +91,11 @@ abstract class BaseModel
         $whereConditions = [];
         $params = [];
 
-        // --- Lógica de Filtros Específicos ---
         if (!empty($options['filters'])) {
             foreach ($options['filters'] as $column => $value) {
-                // Se crea un nombre de placeholder seguro, reemplazando '.' por '_'
                 $placeholderName = str_replace('.', '_', $column);
                 $placeholder = ":filter_{$placeholderName}";
-
-                // --- INICIO DE LA CORRECCIÓN ---
-                // Si la columna ya contiene un punto (ej: 'a.colaborador_id'), se usa tal cual.
-                if (strpos($column, '.') !== false) {
-                    $finalColumn = $column;
-                } else {
-                    // Si no, se le añade el prefijo por defecto (ej: 'i.categoria_id').
-                    $finalColumn = "{$prefix}.{$column}";
-                }
-                // --- FIN DE LA CORRECCIÓN ---
-
+                $finalColumn = (strpos($column, '.') !== false) ? $column : "{$prefix}.{$column}";
                 $whereConditions[] = "{$finalColumn} = {$placeholder}";
                 $params[$placeholder] = $value;
             }
@@ -110,11 +106,23 @@ abstract class BaseModel
             $searchTerm = '%' . $options['search'] . '%';
             $searchConditions = [];
 
+            // --- INICIO DE LA CORRECCIÓN ---
             foreach ($this->searchableColumns as $index => $column) {
                 $placeholder = ":searchTerm{$index}";
-                $searchConditions[] = "{$prefix}.{$column} LIKE {$placeholder}";
+
+                // Se aplica la misma lógica que en los filtros:
+                // Si la columna ya contiene un punto (ej: 'co.nombre'), se usa tal cual.
+                if (strpos($column, '.') !== false) {
+                    $finalColumn = $column;
+                } else {
+                    // Si no, se le añade el prefijo por defecto (ej: 'nombre' se convierte en 'i.nombre').
+                    $finalColumn = "{$prefix}.{$column}";
+                }
+
+                $searchConditions[] = "{$finalColumn} LIKE {$placeholder}";
                 $params[$placeholder] = $searchTerm;
             }
+            // --- FIN DE LA CORRECCIÓN ---
 
             if (!empty($searchConditions)) {
                 $whereConditions[] = "(" . implode(' OR ', $searchConditions) . ")";
