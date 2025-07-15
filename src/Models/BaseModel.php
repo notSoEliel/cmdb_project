@@ -4,76 +4,123 @@ namespace App\Models;
 
 use App\Core\Database;
 
-/**
- * Clase Abstracta BaseModel
- * Proporciona la funcionalidad CRUD básica y reutilizable, incluido el ordenamiento.
- */
-abstract class BaseModel {
-    /**
-     * @var string El nombre de la tabla en la base de datos. Debe ser definido en la clase hija.
-     */
+abstract class BaseModel
+{
+
+    // Añade esta nueva propiedad al principio de la clase BaseModel
+    protected $tableAlias = null;
+
     protected $tableName;
-
-    /**
-     * @var array Columnas permitidas para el ordenamiento. Debe ser definido en la clase hija.
-     */
     protected $allowedSortColumns = ['id'];
+    protected $searchableColumns = [];
 
-    /**
-     * Obtiene el total de registros en la tabla.
-     *
-     * @return int El total de registros.
-     */
-    public function countAll() {
-        $sql = "SELECT COUNT(id) as total FROM {$this->tableName}";
-        $result = Database::getInstance()->query($sql)->find();
-        return $result['total'];
+    // Nuevas propiedades para que los modelos hijos personalicen la consulta
+    protected $selectClause = '';
+    protected $joins = '';
+    protected $groupBy = '';
+
+    public function __construct()
+    {
+        // Si no se define una cláusula SELECT, se usa la por defecto
+        if (empty($this->selectClause)) {
+            $this->selectClause = "{$this->tableName}.*";
+        }
     }
 
-    /**
-     * Obtiene todos los registros de la tabla, con opciones de ordenamiento.
-     *
-     * @param array $options Opciones para la consulta, como ['sort' => 'columna', 'order' => 'asc|desc']
-     * @return array Un arreglo con todos los registros.
-     */
-    public function findAll(array $options = []) {
-        // --- Lógica de Ordenamiento Reutilizable ---
-        $sortColumn = 'id'; // Columna por defecto
-        $sortOrder = 'ASC';  // Orden por defecto
+    public function countFiltered(array $options = []): int
+    {
+        $sql = "SELECT COUNT(DISTINCT {$this->tableName}.id) as total FROM {$this->tableName}";
+        $sql .= " " . $this->joins; // Añadir los joins
+        list($whereClause, $params) = $this->buildWhereClause($options);
+        $sql .= $whereClause;
 
-        // Validar la columna de ordenamiento
+        $result = Database::getInstance()->query($sql, $params)->find();
+        return $result['total'] ?? 0;
+    }
+
+    public function findAll(array $options = []): array
+    {
+        $sortColumn = "{$this->tableName}.id";
         if (!empty($options['sort']) && in_array($options['sort'], $this->allowedSortColumns)) {
-            $sortColumn = $options['sort'];
+            $sortColumn = "{$this->tableName}." . $options['sort'];
+        }
+        $sortOrder = (!empty($options['order']) && in_array(strtoupper($options['order']), ['ASC', 'DESC'])) ? strtoupper($options['order']) : 'ASC';
+
+        $perPage = $options['perPage'] ?? 10;
+        $page = $options['page'] ?? 1;
+        $offset = ($page - 1) * $perPage;
+
+        $sql = "SELECT {$this->selectClause} FROM {$this->tableName}";
+        $sql .= " " . $this->joins; // Añadir los joins
+
+        list($whereClause, $params) = $this->buildWhereClause($options);
+        $sql .= $whereClause;
+
+        if (!empty($this->groupBy)) {
+            $sql .= " GROUP BY {$this->groupBy}";
         }
 
-        // Validar la dirección del ordenamiento
-        if (!empty($options['order']) && in_array(strtoupper($options['order']), ['ASC', 'DESC'])) {
-            $sortOrder = strtoupper($options['order']);
-        }
-        
-        $sql = "SELECT * FROM {$this->tableName} ORDER BY {$sortColumn} {$sortOrder}";
-        
-        return Database::getInstance()->query($sql)->get();
+        $sql .= " ORDER BY {$sortColumn} {$sortOrder} LIMIT {$perPage} OFFSET {$offset}";
+
+        return Database::getInstance()->query($sql, $params)->get();
     }
 
+
+
     /**
-     * Busca un registro por su ID.
-     *
-     * @param int $id El ID del registro.
-     * @return mixed
+     * Construye la cláusula WHERE y los parámetros para la consulta.
+     * @param array $options
+     * @return array [string $whereClause, array $params]
      */
-    public function findById($id) {
-        $sql = "SELECT * FROM {$this->tableName} WHERE id = :id";
+    protected function buildWhereClause(array $options = []): array
+    {
+        // Usa el alias si está definido, si no, usa el nombre de la tabla.
+        $prefix = $this->tableAlias ?? $this->tableName;
+
+        $whereConditions = [];
+        $params = [];
+
+        // Filtros específicos
+        if (!empty($options['filters'])) {
+            foreach ($options['filters'] as $column => $value) {
+                $placeholder = ":filter_{$column}";
+                // AHORA USA EL PREFIJO CORRECTO (ej: 'i.categoria_id')
+                $whereConditions[] = "{$prefix}.{$column} = {$placeholder}";
+                $params[$placeholder] = $value;
+            }
+        }
+
+        // Búsqueda de texto libre
+        if (!empty($options['search']) && !empty($this->searchableColumns)) {
+            $searchTerm = '%' . $options['search'] . '%';
+            $searchConditions = [];
+
+            foreach ($this->searchableColumns as $index => $column) {
+                $placeholder = ":searchTerm{$index}";
+                // AHORA USA EL PREFIJO CORRECTO (ej: 'i.nombre_equipo')
+                $searchConditions[] = "{$prefix}.{$column} LIKE {$placeholder}";
+                $params[$placeholder] = $searchTerm;
+            }
+
+            if (!empty($searchConditions)) {
+                $whereConditions[] = "(" . implode(' OR ', $searchConditions) . ")";
+            }
+        }
+
+        return [
+            !empty($whereConditions) ? " WHERE " . implode(' AND ', $whereConditions) : "",
+            $params
+        ];
+    }
+
+    public function findById($id)
+    {
+        $sql = "SELECT {$this->selectClause} FROM {$this->tableName} {$this->joins} WHERE {$this->tableName}.id = :id";
         return Database::getInstance()->query($sql, ['id' => $id])->find();
     }
 
-    /**
-     * Elimina un registro por su ID.
-     *
-     * @param int $id El ID del registro a eliminar.
-     * @return bool
-     */
-    public function delete($id) {
+    public function delete($id)
+    {
         $sql = "DELETE FROM {$this->tableName} WHERE id = :id";
         Database::getInstance()->query($sql, ['id' => $id]);
         return true;

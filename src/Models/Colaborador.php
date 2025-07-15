@@ -4,26 +4,32 @@ namespace App\Models;
 
 use App\Core\Database;
 
-
 /**
  * Modelo Colaborador
- * Gestiona los datos de la tabla 'colaboradores'.
+ * Gestiona los datos de la tabla 'colaboradores' y hereda la lógica
+ * de búsqueda, paginación y ordenamiento del BaseModel.
  */
 class Colaborador extends BaseModel
 {
     /**
-     * @var string El nombre de la tabla.
+     * @var string El nombre de la tabla en la base de datos.
      */
     protected $tableName = 'colaboradores';
 
     /**
-     * @var array Columnas permitidas para el ordenamiento.
+     * @var array Columnas permitidas para el ordenamiento dinámico.
      */
     protected $allowedSortColumns = ['id', 'nombre', 'apellido', 'identificacion_unica', 'email'];
+    
+    /**
+     * @var array Columnas en las que se realizará la búsqueda de texto libre.
+     */
+    protected $searchableColumns = ['nombre', 'apellido', 'identificacion_unica', 'email', 'ubicacion', 'telefono'];
 
     /**
-     * Guarda un registro de colaborador.
-     * Maneja la creación y actualización, incluyendo el hasheo de la contraseña.
+     * Guarda (Crea o Actualiza) un registro de colaborador.
+     * Este método es específico de este modelo debido a su lógica particular
+     * para manejar la contraseña.
      *
      * @param array $data Datos del colaborador.
      * @return bool
@@ -39,8 +45,7 @@ class Colaborador extends BaseModel
             'telefono' => $data['telefono'],
         ];
 
-        // Hashear la contraseña solo si se proporciona una nueva.
-        // Esto evita sobreescribir la contraseña existente si el campo se deja vacío al editar.
+        // Hashear la contraseña solo si se proporciona una nueva al editar.
         if (!empty($data['password'])) {
             $params['password_hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
         }
@@ -48,8 +53,6 @@ class Colaborador extends BaseModel
         if (isset($data['id']) && !empty($data['id'])) {
             // --- Actualizar un colaborador existente ---
             $params['id'] = $data['id'];
-
-            // Construir la parte SET de la consulta dinámicamente
             $setClauses = [];
             foreach ($params as $key => $value) {
                 if ($key !== 'id') {
@@ -59,10 +62,7 @@ class Colaborador extends BaseModel
             $sql = "UPDATE {$this->tableName} SET " . implode(', ', $setClauses) . " WHERE id = :id";
         } else {
             // --- Crear un nuevo colaborador ---
-            // Se requiere contraseña al crear un nuevo colaborador
             if (empty($params['password_hash'])) {
-                // Podríamos lanzar una excepción o retornar un error.
-                // Por simplicidad, aquí detenemos la ejecución con un mensaje.
                 die("El campo de contraseña es obligatorio al crear un nuevo colaborador.");
             }
             $columns = implode(', ', array_keys($params));

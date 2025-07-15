@@ -16,14 +16,16 @@ class Categoria extends BaseModel {
 
     /**
      * @var array Columnas por las que se permite ordenar en esta tabla.
-     * Esto es una medida de seguridad para prevenir inyección SQL en la cláusula ORDER BY.
      */
     protected $allowedSortColumns = ['id', 'nombre'];
+
+    /**
+     * @var array Columnas en las que se realizará la búsqueda de texto libre.
+     */
+    protected $searchableColumns = ['nombre'];
     
     /**
      * Guarda una categoría (la crea si no tiene ID, la actualiza si lo tiene).
-     * Este método es específico de Categoria y no está en BaseModel porque
-     * otras tablas tendrán diferentes columnas para guardar.
      *
      * @param array $data Los datos de la categoría ['nombre', 'id' (opcional)].
      * @return bool True si la operación fue exitosa.
