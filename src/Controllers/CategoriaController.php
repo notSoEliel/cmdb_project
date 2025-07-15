@@ -20,7 +20,7 @@ class CategoriaController extends BaseController
         $page = (int)($_GET['page'] ?? 1);
         $perPage = (int)($_GET['perPage'] ?? 10);
         $search = $_GET['search'] ?? '';
-        $sort = $_GET['sort'] ?? 'id';
+        $sort = $_GET['sort'] ?? 'c.nombre';
         $order = $_GET['order'] ?? 'asc';
 
         // 2. Prepara el modelo y las opciones.

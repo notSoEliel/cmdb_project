@@ -135,14 +135,40 @@ abstract class BaseModel
         ];
     }
 
+    /**
+     * Busca un único registro por su ID, usando el alias de la tabla.
+     *
+     * @param int $id El ID del registro a buscar.
+     * @return mixed El registro encontrado o false.
+     */
     public function findById($id)
     {
-        $sql = "SELECT {$this->selectClause} FROM {$this->tableName} {$this->joins} WHERE {$this->tableName}.id = :id";
+        // Se asegura de usar el alias en el FROM y en el WHERE para consistencia.
+        $prefix = $this->tableAlias ?? $this->tableName;
+
+        $sql = "SELECT {$this->selectClause} 
+                FROM {$this->tableName} AS {$prefix}
+                {$this->joins} 
+                WHERE {$prefix}.id = :id";
+
+        // Para consultas complejas con GROUP BY, tomamos solo el primer resultado.
+        if (!empty($this->groupBy)) {
+            $sql .= " GROUP BY {$this->groupBy}";
+        }
+
         return Database::getInstance()->query($sql, ['id' => $id])->find();
     }
 
+    /**
+     * Elimina un registro por su ID.
+     *
+     * @param int $id El ID del registro a eliminar.
+     * @return bool
+     */
     public function delete($id)
     {
+        // La consulta DELETE es simple y no necesita alias,
+        // pero la mantenemos así para claridad.
         $sql = "DELETE FROM {$this->tableName} WHERE id = :id";
         Database::getInstance()->query($sql, ['id' => $id]);
         return true;
