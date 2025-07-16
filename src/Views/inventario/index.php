@@ -61,15 +61,16 @@ if (isset($_GET['editar_id']) && !empty($_GET['editar_id'])) {
                         <label class="form-label" for="estado">Cambiar Estado</label>
                         <select name="estado" id="estado" class="form-select" onchange="toggleDonacion(this.value)">
                             <?php
-                            // Guardamos el estado actual para no perderlo si no se cambia
-                            echo '<option value="' . htmlspecialchars($equipoActual['estado']) . '" selected>' . htmlspecialchars($equipoActual['estado']) . ' (Actual)</option>';
+                            // Guardamos el estado actual para que aparezca seleccionado
+                            $estadoActual = $equipoActual['estado'] ?? '';
+                            echo '<option value="' . htmlspecialchars($estadoActual) . '" selected>' . htmlspecialchars($estadoActual) . ' (Actual)</option>';
 
                             // Definimos los únicos estados que se pueden seleccionar manualmente
                             $estadosPermitidos = ['En Reparación', 'Dañado', 'En Descarte', 'Donado'];
 
                             foreach ($estadosPermitidos as $estado) {
                                 // Solo mostramos la opción si es diferente al estado actual
-                                if ($estado !== $equipoActual['estado']) {
+                                if ($estado !== $estadoActual) {
                                     echo '<option value="' . $estado . '">' . $estado . '</option>';
                                 }
                             }
@@ -94,19 +95,19 @@ if (isset($_GET['editar_id']) && !empty($_GET['editar_id'])) {
 </div>
 
 <div class="modal fade" id="notesModal" tabindex="-1" aria-labelledby="notesModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h1 class="modal-title fs-5" id="notesModalLabel">Notas de Donación / Descarte</h1>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="notesModalBody">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="notesModalLabel">Notas de Donación / Descarte</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="notesModalBody">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
         </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-      </div>
     </div>
-  </div>
 </div>
 
 <script>
