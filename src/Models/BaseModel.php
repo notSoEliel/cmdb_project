@@ -93,11 +93,28 @@ abstract class BaseModel
 
         if (!empty($options['filters'])) {
             foreach ($options['filters'] as $column => $value) {
-                $placeholderName = str_replace('.', '_', $column);
-                $placeholder = ":filter_{$placeholderName}";
+                // Se crea un nombre de columna seguro para usar en los placeholders
+                $safeColumnName = str_replace('.', '_', $column);
                 $finalColumn = (strpos($column, '.') !== false) ? $column : "{$prefix}.{$column}";
-                $whereConditions[] = "{$finalColumn} = {$placeholder}";
-                $params[$placeholder] = $value;
+                // Si el valor del filtro es un array, creamos una cláusula IN o NOT IN
+                if (is_array($value)) {
+                    // El primer elemento del array es el operador (IN, NOT IN)
+                    $operator = array_shift($value);
+                    // Creamos placeholders únicos para cada valor en el array
+                    $placeholders = [];
+                    foreach ($value as $idx => $v) {
+                        // Se usa el nombre de columna seguro para crear un placeholder válido (sin puntos)
+                        $placeholder = ":filter_{$safeColumnName}_{$idx}";
+                        $placeholders[] = $placeholder;
+                        $params[$placeholder] = $v;
+                    }
+                    $whereConditions[] = "{$finalColumn} {$operator} (" . implode(',', $placeholders) . ")";
+                } else {
+                    // Si no es un array, usamos el comparador '=' de siempre
+                    $placeholder = ":filter_" . str_replace('.', '_', $column);
+                    $whereConditions[] = "{$finalColumn} = {$placeholder}";
+                    $params[$placeholder] = $value;
+                }
             }
         }
 

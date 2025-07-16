@@ -4,12 +4,18 @@ namespace App\Models;
 
 use App\Core\Database;
 
+/**
+ * Modelo Inventario
+ *
+ * Se encarga de todas las operaciones de la base de datos para los equipos.
+ * Define su propia estructura de consulta con JOINs para obtener datos relacionados.
+ */
 class Inventario extends BaseModel
 {
     protected $tableName = 'inventario';
     protected $tableAlias = 'i';
 
-    // Se definen todas las propiedades que el BaseModel usará para construir la consulta
+    // Se definen las propiedades que el BaseModel usará para construir la consulta
     public function __construct()
     {
         parent::__construct(); // Llama al constructor del padre
@@ -38,25 +44,18 @@ class Inventario extends BaseModel
 
     protected $searchableColumns = ['i.nombre_equipo', 'i.marca', 'i.modelo', 'i.serie', 'co.nombre', 'co.apellido'];
 
+    /**
+     * Guarda los datos de un equipo.
+     * Al actualizar, NO modifica el estado de asignación.
+     * Al crear, establece el estado por defecto a "En Stock".
+     */
     public function save($data)
     {
         $currentId = !empty($data['id']) ? (int)$data['id'] : null;
 
-
-        // --- VALIDACIÓN PREVIA ---
-        // Verifica que el número de serie no esté ya registrado en otro equipo.
+        // Validación de duplicados para el número de serie
         if (!empty($data['serie']) && $this->exists('serie', $data['serie'], $currentId)) {
-            throw new \Exception("El número de serie '{$data['serie']}' ya está registrado en otro equipo.");
-        }
-        // --- FIN DE VALIDACIÓN ---
-
-        // Sanitización de datos (sin cambios)
-        $costo = !empty($data['costo']) ? $data['costo'] : 0.00;
-        $depreciacion = !empty($data['tiempo_depreciacion_anios']) ? $data['tiempo_depreciacion_anios'] : 0;
-        $fecha_ingreso = !empty($data['fecha_ingreso']) ? $data['fecha_ingreso'] : null;
-
-        if ($fecha_ingreso === null) {
-            throw new \Exception("La fecha de ingreso no puede estar vacía.");
+            throw new \Exception("El número de serie '{$data['serie']}' ya está registrado.");
         }
 
         $params = [
@@ -64,27 +63,33 @@ class Inventario extends BaseModel
             'marca' => $data['marca'],
             'modelo' => $data['modelo'],
             'serie' => $data['serie'],
-            'costo' => $costo,
-            'fecha_ingreso' => $fecha_ingreso,
-            'tiempo_depreciacion_anios' => $depreciacion,
+            'costo' => !empty($data['costo']) ? $data['costo'] : 0.00,
+            'fecha_ingreso' => !empty($data['fecha_ingreso']) ? $data['fecha_ingreso'] : null,
+            'tiempo_depreciacion_anios' => !empty($data['tiempo_depreciacion_anios']) ? $data['tiempo_depreciacion_anios'] : 0,
             'categoria_id' => $data['categoria_id'],
         ];
 
         if ($currentId) {
-            // Actualizar (la consulta UPDATE no modifica el estado)
+            // --- INICIO DE LA MODIFICACIÓN ---
+            // MODO UPDATE: Se añaden 'estado' y 'notas_donacion' a los parámetros
             $params['id'] = $currentId;
+            $params['estado'] = $data['estado']; // Se toma el estado del formulario
+            $params['notas_donacion'] = ($data['estado'] === 'Donado' || $data['estado'] === 'En Descarte') ? ($data['notas_donacion'] ?? null) : null;
+
+            // La consulta UPDATE ahora incluye los campos 'estado' y 'notas_donacion'
             $sql = "UPDATE {$this->tableName} SET
                         nombre_equipo = :nombre_equipo, marca = :marca, modelo = :modelo, serie = :serie,
                         costo = :costo, fecha_ingreso = :fecha_ingreso,
                         tiempo_depreciacion_anios = :tiempo_depreciacion_anios,
-                        categoria_id = :categoria_id
+                        categoria_id = :categoria_id, estado = :estado, notas_donacion = :notas_donacion
                     WHERE id = :id";
         } else {
-            // Crear (se establece el estado por defecto)
+            // MODO CREATE: Se establece el estado inicial a "En Stock".
             $params['estado'] = 'En Stock';
             $sql = "INSERT INTO {$this->tableName} (nombre_equipo, marca, modelo, serie, costo, fecha_ingreso, tiempo_depreciacion_anios, categoria_id, estado)
                     VALUES (:nombre_equipo, :marca, :modelo, :serie, :costo, :fecha_ingreso, :tiempo_depreciacion_anios, :categoria_id, :estado)";
         }
+        // --- FIN DE LA MODIFICACIÓN ---
 
         Database::getInstance()->query($sql, $params);
         return true;

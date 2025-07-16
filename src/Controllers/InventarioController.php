@@ -41,7 +41,11 @@ class InventarioController extends BaseController
         }
         // Se añade un filtro si se ha seleccionado un colaborador.
         if (!empty($_GET['colaborador_id'])) {
+            // ...añadimos el filtro por su ID...
             $filters['a.colaborador_id'] = $_GET['colaborador_id'];
+            // ...y TAMBIÉN añadimos un filtro para excluir los estados no relevantes.
+            // La estructura ['NOT IN', 'val1', 'val2'] es entendida por el nuevo buildWhereClause.
+            $filters['i.estado'] = ['NOT IN', 'En Descarte', 'Donado'];
         }
 
         // --- 2. Preparación de Modelos y Opciones ---

@@ -66,4 +66,19 @@ class Asignacion
             throw $e;
         }
     }
+
+    /**
+     * Busca la asignación activa de un equipo y le pone fecha de devolución.
+     * @param int $inventario_id
+     * @return bool
+     */
+    public function unassignByInventarioId(int $inventario_id): bool
+    {
+        $sql = "UPDATE asignaciones 
+                SET fecha_devolucion = CURDATE() 
+                WHERE inventario_id = :inventario_id AND fecha_devolucion IS NULL";
+
+        Database::getInstance()->query($sql, ['inventario_id' => $inventario_id]);
+        return true;
+    }
 }
