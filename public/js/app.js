@@ -27,3 +27,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Lógica para el modal de notas
+const notesModal = document.getElementById('notesModal');
+if (notesModal) {
+    notesModal.addEventListener('show.bs.modal', function(event) {
+        // Botón que activó el modal
+        const button = event.relatedTarget;
+        // Extraer la información de los atributos data-*
+        const notes = button.getAttribute('data-notes');
+        // Actualizar el contenido del modal
+        const modalBody = notesModal.querySelector('#notesModalBody');
+        modalBody.textContent = notes;
+    });
+}

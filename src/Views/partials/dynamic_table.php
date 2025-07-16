@@ -147,6 +147,14 @@ if (!empty($pagination['filters'])) {
                                         <a href="?route=inventario&colaborador_id=<?= $row['id'] ?>" class="btn btn-sm btn-primary" title="Ver Equipos Asignados"><i class="bi bi-hdd-stack"></i></a>
                                     <?php endif; ?>
 
+                                    <?php if (!empty($row['notas_donacion'])): ?>
+                                        <button type="button" class="btn btn-sm btn-dark" title="Ver Notas"
+                                            data-bs-toggle="modal" data-bs-target="#notesModal"
+                                            data-notes="<?= htmlspecialchars($row['notas_donacion']) ?>">
+                                            <i class="bi bi-card-text"></i>
+                                        </button>
+                                    <?php endif; ?>
+
                                     <?php if (isset($actions['image_route'])) : ?>
                                         <a href="?route=<?= $actions['image_route'] ?>&id=<?= $row['id'] ?>" class="btn btn-sm btn-info" title="Gestionar Imágenes"><i class="bi bi-images"></i></a>
                                     <?php endif; ?>
