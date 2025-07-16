@@ -192,7 +192,37 @@ if (!empty($pagination['filters'])) {
 
         <nav>
             <ul class="pagination mb-0">
-                <?php if ($pagination['totalPages'] > 1) : ?>
+                <?php if ($pagination['totalPages'] > 1): ?>
+
+                    <li class="page-item <?= ($pagination['currentPage'] <= 1) ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?<?= http_build_query(array_merge($queryParams, ['page' => 1])) ?>">« Primera</a>
+                    </li>
+
+                    <li class="page-item <?= ($pagination['currentPage'] <= 1) ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?<?= http_build_query(array_merge($queryParams, ['page' => $pagination['currentPage'] - 1])) ?>">Anterior</a>
+                    </li>
+
+                    <?php
+                    // Lógica para mostrar un rango de páginas (ej: 3 botones)
+                    $range = 1;
+                    $start = max(1, $pagination['currentPage'] - $range);
+                    $end = min($pagination['totalPages'], $pagination['currentPage'] + $range);
+
+                    for ($i = $start; $i <= $end; $i++):
+                    ?>
+                        <li class="page-item <?= ($i == $pagination['currentPage']) ? 'active' : '' ?>">
+                            <a class="page-link" href="?<?= http_build_query(array_merge($queryParams, ['page' => $i])) ?>"><?= $i ?></a>
+                        </li>
+                    <?php endfor; ?>
+
+                    <li class="page-item <?= ($pagination['currentPage'] >= $pagination['totalPages']) ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?<?= http_build_query(array_merge($queryParams, ['page' => $pagination['currentPage'] + 1])) ?>">Siguiente</a>
+                    </li>
+
+                    <li class="page-item <?= ($pagination['currentPage'] >= $pagination['totalPages']) ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?<?= http_build_query(array_merge($queryParams, ['page' => $pagination['totalPages']])) ?>">Última »</a>
+                    </li>
+
                 <?php endif; ?>
             </ul>
         </nav>

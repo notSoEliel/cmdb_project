@@ -10,5 +10,7 @@
         "name": "Eliel",
         "email": "eliel.garcia1@utp.ac.pa"
     }],
-    "require": {}
+    "require": {
+        "phpoffice/phpspreadsheet": "^4.4"
+    }
 }

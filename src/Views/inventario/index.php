@@ -23,7 +23,12 @@ if (isset($_GET['editar_id']) && !empty($_GET['editar_id'])) {
 ?>
 
 <a href="index.php">← Volver al Menú</a>
-<h1 class="mt-2"><?= $pageTitle ?></h1>
+<div class="d-flex justify-content-between align-items-center">
+    <h1 class="mt-2"><?= $pageTitle ?? 'Gestionar Inventario' ?></h1>
+    <a href="index.php?route=inventario&action=exportToExcel" class="btn btn-success">
+        <i class="bi bi-file-earmark-excel-fill me-2"></i>Exportar a Excel
+    </a>
+</div>
 
 <div class="card mb-4">
     <div class="card-header"><?= $equipoActual ? '✏️ Editando Equipo: ' . htmlspecialchars($equipoActual['nombre_equipo']) : '➕ Agregar Nuevo Equipo' ?></div>

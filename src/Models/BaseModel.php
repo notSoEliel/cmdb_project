@@ -48,7 +48,8 @@ abstract class BaseModel
     public function findAll(array $options = []): array
     {
         // Lógica de Ordenamiento
-        $sortColumn = "{$this->tableAlias}.id";
+        $prefix = $this->tableAlias ?? $this->tableName;
+        $sortColumn = "{$prefix}.id";
         if (!empty($options['sort']) && in_array($options['sort'], $this->allowedSortColumns)) {
             $sortColumn = $options['sort'];
         }
@@ -61,17 +62,26 @@ abstract class BaseModel
 
         // Construcción de la consulta usando las piezas del modelo hijo
         $sql = "SELECT {$this->selectClause} 
-                FROM {$this->tableName} AS {$this->tableAlias} 
+                FROM {$this->tableName} AS {$prefix} 
                 {$this->joins}";
 
         list($whereClause, $params) = $this->buildWhereClause($options);
         $sql .= $whereClause;
 
+        // --- INICIO DE LA CORRECCIÓN ---
+        // Se añade un espacio al principio de las cláusulas para evitar errores de sintaxis.
         if (!empty($this->groupBy)) {
             $sql .= " GROUP BY {$this->groupBy}";
         }
 
-        $sql .= " ORDER BY {$sortColumn} {$sortOrder} LIMIT {$perPage} OFFSET {$offset}";
+        $sql .= " ORDER BY {$sortColumn} {$sortOrder}";
+
+        // La paginación se aplica solo si no se indica explícitamente lo contrario.
+        // Esto es útil para los reportes de Excel.
+        if (($options['paginate'] ?? true) !== false) {
+            $sql .= " LIMIT {$perPage} OFFSET {$offset}";
+        }
+        // --- FIN DE LA CORRECCIÓN ---
 
         return Database::getInstance()->query($sql, $params)->get();
     }
