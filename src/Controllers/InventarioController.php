@@ -83,6 +83,7 @@ class InventarioController extends BaseController
                 ['header' => 'Serie', 'field' => 'serie'],   // No ordenable
                 ['header' => 'Costo', 'field' => 'costo', 'sort_by' => 'i.costo'],
                 ['header' => 'Fecha Ingreso', 'field' => 'fecha_ingreso', 'sort_by' => 'i.fecha_ingreso'],
+                ['header' => 'Fin de Vida Útil', 'field' => 'fecha_fin_vida', 'sort_by' => 'fecha_fin_vida'],
                 ['header' => 'Asignado a', 'field' => 'nombre_colaborador', 'sort_by' => 'nombre_colaborador'],
                 ['header' => 'Estado', 'field' => 'estado', 'sort_by' => 'i.estado'],
             ],

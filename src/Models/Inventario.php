@@ -15,6 +15,18 @@ class Inventario extends BaseModel
     protected $tableName = 'inventario';
     protected $tableAlias = 'i';
 
+    protected $allowedSortColumns = [
+        'i.id',
+        'i.nombre_equipo',
+        'nombre_categoria',
+        'nombre_colaborador',
+        'i.estado',
+        'i.fecha_ingreso',
+        'fecha_fin_vida'
+    ];
+
+    protected $searchableColumns = ['i.nombre_equipo', 'i.marca', 'i.modelo', 'i.serie', 'co.nombre', 'co.apellido'];
+
     // Se definen las propiedades que el BaseModel usará para construir la consulta
     public function __construct()
     {
@@ -23,7 +35,9 @@ class Inventario extends BaseModel
                                c.nombre as nombre_categoria, 
                                CONCAT(co.nombre, ' ', co.apellido) as nombre_colaborador, 
                                a.id as asignacion_id, 
-                               ii.ruta_imagen as thumbnail_path";
+                               ii.ruta_imagen as thumbnail_path,
+                               DATE_ADD(i.fecha_ingreso, INTERVAL i.tiempo_depreciacion_anios YEAR) AS fecha_fin_vida";
+
 
         $this->joins = "LEFT JOIN categorias c ON i.categoria_id = c.id
                         LEFT JOIN inventario_imagenes ii ON i.id = ii.inventario_id AND ii.es_thumbnail = 1
@@ -33,16 +47,6 @@ class Inventario extends BaseModel
                         )
                         LEFT JOIN colaboradores co ON a.colaborador_id = co.id";
     }
-
-    protected $allowedSortColumns = [
-        'i.id',
-        'i.nombre_equipo',
-        'nombre_categoria',
-        'nombre_colaborador',
-        'i.estado'
-    ];
-
-    protected $searchableColumns = ['i.nombre_equipo', 'i.marca', 'i.modelo', 'i.serie', 'co.nombre', 'co.apellido'];
 
     /**
      * Guarda los datos de un equipo.

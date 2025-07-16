@@ -118,6 +118,20 @@ if (!empty($pagination['filters'])) {
                                             $badges = ['En Stock' => 'bg-success', 'Asignado' => 'bg-primary', 'En Reparación' => 'bg-info text-dark', 'Dañado' => 'bg-warning text-dark', 'En Descarte' => 'bg-secondary', 'Donado' => 'bg-dark'];
                                             $badge_class = $badges[$cellValue] ?? 'bg-light text-dark';
                                             echo '<span class="badge ' . $badge_class . '">' . htmlspecialchars($cellValue) . '</span>';
+                                        } elseif ($column['field'] === 'fecha_fin_vida' && !empty($row['fecha_fin_vida'])) {
+                                            $fechaFin = new DateTime($row['fecha_fin_vida']);
+                                            $hoy = new DateTime();
+                                            $diferencia = $hoy->diff($fechaFin);
+
+                                            // Muestra la fecha
+                                            echo $fechaFin->format('Y-m-d');
+
+                                            // Muestra una insignia si ya expiró o le quedan menos de 6 meses
+                                            if ($hoy > $fechaFin) {
+                                                echo ' <span class="badge bg-danger">Expirado</span>';
+                                            } elseif ($diferencia->y == 0 && $diferencia->m < 6) {
+                                                echo ' <span class="badge bg-warning text-dark">Próximo a Expirar</span>';
+                                            }
                                         } else {
                                             // Si es una celda normal, solo muestra el texto
                                             echo htmlspecialchars($cellValue);
