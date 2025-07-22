@@ -4,7 +4,6 @@ namespace App\Core;
 
 class ValidationService
 {
-
     private $config = [];
 
     public function __construct()
@@ -12,56 +11,70 @@ class ValidationService
         $this->config = require '../config/validation_rules_jquery.php';
     }
 
-    public function generateJQueryValidateScript(string $formId): string
+    /**
+     * Genera el script de jQuery Validate para uno o más formularios.
+     * @param array $formIds Un array con los IDs de los formularios a validar.
+     * @return string El bloque <script> completo.
+     */
+    public function generateJQueryValidateScript(array $formIds): string
     {
-        if (!isset($this->config[$formId])) {
-            return '';
+        $finalScript = ''; // Inicia un string para los scripts individuales
+
+        // Itera sobre cada ID de formulario que nos pasaron
+        foreach ($formIds as $formId) {
+            // Si no hay reglas para este formId, lo salta y continúa con el siguiente
+            if (!isset($this->config[$formId])) {
+                continue;
+            }
+
+            $formConfig = $this->config[$formId];
+            $rulesJson = json_encode($formConfig['rules']);
+            $messagesJson = json_encode($formConfig['messages']);
+
+            // Genera el bloque .validate() para este formulario específico
+            $script = "\n";
+            $script .= "    $('#$formId').validate({\n";
+            $script .= "        rules: $rulesJson,\n";
+            $script .= "        messages: $messagesJson,\n";
+            $script .= "        errorElement: 'div',\n";
+            $script .= "        errorClass: 'text-danger form-text',\n";
+            $script .= "        errorPlacement: function(error, element) {\n";
+            $script .= "            if (element.parent().hasClass('input-group')) {\n";
+            $script .= "                error.insertAfter(element.parent());\n";
+            $script .= "            } else {\n";
+            $script .= "                error.insertAfter(element);\n";
+            $script .= "            }\n";
+            $script .= "        },\n";
+            $script .= "        highlight: function(element) { $(element).addClass('is-invalid'); },\n";
+            $script .= "        unhighlight: function(element) { $(element).removeClass('is-invalid'); }\n";
+            $script .= "    });\n";
+
+            // Lógica condicional para la contraseña en el form de colaborador
+            if ($formId === 'form-colaborador' && !empty($_GET['editar_id'])) {
+                $script .= "    $('input[name=\"password\"]').rules('remove', 'required');\n";
+            }
+
+            // Lógica condicional para la contraseña en el form de perfil
+            if ($formId === 'form-password' && !empty($_SESSION['user_id'])) {
+                // No es necesario añadir la regla 'required' aquí porque ya está en la config.
+                // Esta lógica sería para casos más complejos.
+            }
+
+            $finalScript .= $script; // Añade el script de este formulario al total
         }
 
-        $formConfig = $this->config[$formId];
-        $rulesJson = json_encode($formConfig['rules']);
-        $messagesJson = json_encode($formConfig['messages']);
-
-        // Esta configuración es más simple y se integra mejor con Bootstrap 5
-        $script = "<script>\n";
-        $script .= "$(document).ready(function() {\n";
-
-        // --- Reglas Personalizadas ---
-        $script .= "    $.validator.addMethod('phonePA', function(value, element) { return this.optional(element) || /^\\d{3,4}-\\d{4}$/.test(value); }, 'Formato: XXXX-XXXX.');\n";
-
-        // --- Inicialización del Plugin ---
-        $script .= "    $('#$formId').validate({\n";
-        $script .= "        rules: $rulesJson,\n";
-        $script .= "        messages: $messagesJson,\n";
-        $script .= "        errorElement: 'div',\n";
-        $script .= "        errorClass: 'invalid-feedback',\n"; // Clase de Bootstrap para errores
-        $script .= "        errorPlacement: function(error, element) {\n";
-        $script .= "            if (element.parent().hasClass('input-group')) {\n";
-        $script .= "                error.insertAfter(element.parent());\n"; // Si está en un input-group, pon el error después del grupo
-        $script .= "            } else {\n";
-        $script .= "                error.insertAfter(element);\n"; // Comportamiento normal para otros campos
-        $script .= "            }\n";
-        $script .= "        },\n";
-        $script .= "        highlight: function(element) {\n";
-        $script .= "            $(element).addClass('is-invalid');\n"; // Clase de Bootstrap para resaltar el campo
-        $script .= "        },\n";
-        $script .= "        unhighlight: function(element) {\n";
-        $script .= "            $(element).removeClass('is-invalid');\n";
-        $script .= "        }\n";
-        $script .= "    });\n";
-
-        // Aquí va la lógica condicional para la contraseña si es el form de colaborador
-        if ($formId === 'form-colaborador') {
-            $script .= "    if ($('input[name=\"id\"]').val() !== '') {\n";
-            $script .= "        $('input[name=\"password\"]').rules('remove', 'required');\n";
-            $script .= "    } else {\n";
-            $script .= "        $('input[name=\"password\"]').rules('add', { required: true, messages: { required: 'La contraseña es obligatoria al crear.' } });\n";
-            $script .= "    }\n";
+        // Si se generó algún script, lo envuelve en las etiquetas necesarias.
+        if (!empty($finalScript)) {
+            $fullScript = "<script>\n";
+            $fullScript .= "$(document).ready(function() {\n";
+            $fullScript .= "    // Reglas personalizadas (solo se definen una vez) \n";
+            $fullScript .= "    $.validator.addMethod('phonePA', function(value, element) { return this.optional(element) || /^\\d{3,4}-\\d{4}$/.test(value); }, 'Formato: XXXX-XXXX.');\n";
+            $fullScript .= $finalScript; // Aquí se insertan todos los bloques .validate()
+            $fullScript .= "});\n";
+            $fullScript .= "</script>";
+            return $fullScript;
         }
 
-        $script .= "});\n";
-        $script .= "</script>";
-
-        return $script;
+        return ''; // Devuelve vacío si no había formularios que validar
     }
 }

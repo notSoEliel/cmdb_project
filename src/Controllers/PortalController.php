@@ -28,7 +28,7 @@ class PortalController extends BaseController
         $this->render('Views/portal/perfil.php', [
             'pageTitle' => 'Mi Perfil',
             'colaborador' => $colaborador,
-            'formId' => 'form-password'
+            'formIds' => ['form-location', 'form-password']
         ]);
     }
 

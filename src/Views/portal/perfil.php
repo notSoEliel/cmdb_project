@@ -55,7 +55,7 @@
                             <button class="btn btn-outline-primary btn-sm" id="btn-change-location">Cambiar</button>
                         </div>
                         <div id="edit-location-div" style="display: none;" class="py-4">
-                            <form action="index.php?route=portal&action=updateLocation" method="POST">
+                            <form id="form-location" action="index.php?route=portal&action=updateLocation" method="POST">
                                 <div class="input-group">
                                     <input require type="text" class="form-control" name="ubicacion" value="<?= htmlspecialchars($colaborador['ubicacion']) ?>">
                                     <button class="btn btn-primary" type="submit">Guardar</button>

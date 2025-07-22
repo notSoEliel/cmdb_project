@@ -64,14 +64,13 @@ abstract class BaseController
      */
     protected function render(string $view, array $data = [], bool $useLayout = true)
     {
-        // Si el controlador le pasa un 'formId' en los datos...
-        if (isset($data['formId'])) {
-            // ...le pide al ValidationService que genere el script para ese formulario...
+        // Si el controlador le pasa un array de 'formIds'...
+        if (isset($data['formIds']) && is_array($data['formIds'])) {
             $validationService = new ValidationService();
-            // ...y lo guarda en una variable que estará disponible en la vista.
-            $data['validationScript'] = $validationService->generateJQueryValidateScript($data['formId']);
+            // ...le pide al ValidationService que genere los scripts.
+            $data['validationScript'] = $validationService->generateJQueryValidateScript($data['formIds']);
         }
-    
+
         extract($data);
 
 

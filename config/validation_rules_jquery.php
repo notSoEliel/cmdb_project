@@ -76,4 +76,14 @@ return [
             ]
         ]
     ],
+
+    // Reglas para cambio de ubicación en form colaborador
+    'form-location' => [
+        'rules' => [
+            'ubicacion' => ['required' => true]
+        ],
+        'messages' => [
+            'ubicacion' => ['required' => 'La ubicación no puede estar vacía.']
+        ]
+    ],
 ];
