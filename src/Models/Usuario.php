@@ -67,4 +67,20 @@ class Usuario extends BaseModel
         Database::getInstance()->query($sql, $params);
         return true;
     }
+
+    /**
+     * Actualiza únicamente la contraseña de un administrador.
+     * @param integer $id
+     * @param string $newPasswordHash
+     * @return boolean
+     */
+    public function updatePassword(int $id, string $newPasswordHash): bool
+    {
+        $sql = "UPDATE {$this->tableName} SET password_hash = :password_hash WHERE id = :id";
+        Database::getInstance()->query($sql, [
+            'password_hash' => $newPasswordHash,
+            'id' => $id
+        ]);
+        return true;
+    }
 }

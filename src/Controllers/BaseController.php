@@ -31,6 +31,7 @@ abstract class BaseController
             'colaboradores' => ['role' => 'admin'],
             'categorias'    => ['role' => 'admin'],
             'usuarios'      => ['role' => 'admin'],
+            'admin_profile' => ['role' => 'admin'],
 
             // Rutas exclusivas para 'colaborador'
             'portal'        => ['role' => 'colaborador'],

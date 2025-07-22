@@ -73,11 +73,20 @@ $current_route = $_GET['route'] ?? 'home';
             <strong><?= htmlspecialchars($_SESSION['user_nombre'] ?? 'Usuario') ?></strong>
         </a>
         <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
-            <li>
-                <a class="dropdown-item" href="index.php?route=portal&action=showProfile">
-                    <i class="bi bi-person-fill me-2"></i>Mi Perfil
-                </a>
-            </li>
+
+            <?php if (($_SESSION['user_role'] ?? '') === 'admin'): ?>
+                <li>
+                    <a class="dropdown-item" href="index.php?route=admin_profile">
+                        <i class="bi bi-person-fill-gear me-2"></i>Mi Perfil (Admin)
+                    </a>
+                </li>
+            <?php else: ?>
+                <li>
+                    <a class="dropdown-item" href="index.php?route=portal&action=showProfile">
+                        <i class="bi bi-person-fill me-2"></i>Mi Perfil
+                    </a>
+                </li>
+            <?php endif; ?>
             <li>
                 <hr class="dropdown-divider">
             </li>

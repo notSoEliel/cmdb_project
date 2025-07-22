@@ -31,11 +31,13 @@ use App\Controllers\DashboardController;
 use App\Controllers\NecesidadController;
 use App\Controllers\PortalController;
 use App\Controllers\UsuarioController;
+use App\Controllers\AdminProfileController;
 
 // Mapa de rutas válidas de la aplicación
 $validRoutes = [
     'login'         => AuthController::class,
     'logout'        => AuthController::class,
+    'admin_profile' => AdminProfileController::class,
     'portal'        => PortalController::class,
     'necesidades'   => NecesidadController::class,
     'usuarios'      => UsuarioController::class,
