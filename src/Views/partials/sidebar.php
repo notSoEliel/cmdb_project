@@ -1,5 +1,6 @@
 <?php
-// Obtenemos la ruta actual para marcar el enlace activo
+// Obtenemos el rol del usuario y la ruta actual para la lógica del menú.
+$userRole = $_SESSION['user_role'] ?? null;
 $current_route = $_GET['route'] ?? 'home';
 ?>
 <div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark h-100">
@@ -9,42 +10,49 @@ $current_route = $_GET['route'] ?? 'home';
     </a>
     <hr>
     <ul class="nav nav-pills flex-column mb-auto">
-        <li class="nav-item">
-            <a href="<?= BASE_URL ?>" class="nav-link text-white <?= $current_route === 'home' ? 'active' : '' ?>">
-                <i class="bi bi-speedometer2 me-2"></i>
-                Dashboard
-            </a>
-        </li>
-        <li>
-            <a href="<?= BASE_URL ?>index.php?route=inventario" class="nav-link text-white <?= $current_route === 'inventario' ? 'active' : '' ?>">
-                <i class="bi bi-hdd-stack me-2"></i>
-                Inventario
-            </a>
-        </li>
-        <li>
-            <a href="<?= BASE_URL ?>index.php?route=colaboradores" class="nav-link text-white <?= $current_route === 'colaboradores' ? 'active' : '' ?>">
-                <i class="bi bi-people me-2"></i>
-                Colaboradores
-            </a>
-        </li>
-        <li>
-            <a href="<?= BASE_URL ?>index.php?route=categorias" class="nav-link text-white <?= $current_route === 'categorias' ? 'active' : '' ?>">
-                <i class="bi bi-tags me-2"></i>
-                Categorías
-            </a>
-        </li>
+        
+        <?php if ($userRole === 'admin'): ?>
+            <li class="nav-item">
+                <a href="<?= BASE_URL ?>" class="nav-link text-white <?= $current_route === 'home' ? 'active' : '' ?>">
+                    <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="<?= BASE_URL ?>index.php?route=inventario" class="nav-link text-white <?= $current_route === 'inventario' ? 'active' : '' ?>">
+                    <i class="bi bi-hdd-stack me-2"></i> Inventario
+                </a>
+            </li>
+            <li>
+                <a href="<?= BASE_URL ?>index.php?route=colaboradores" class="nav-link text-white <?= $current_route === 'colaboradores' ? 'active' : '' ?>">
+                    <i class="bi bi-people me-2"></i> Colaboradores
+                </a>
+            </li>
+            <li>
+                <a href="<?= BASE_URL ?>index.php?route=categorias" class="nav-link text-white <?= $current_route === 'categorias' ? 'active' : '' ?>">
+                    <i class="bi bi-tags me-2"></i> Categorías
+                </a>
+            </li>
+        <?php endif; ?>
+
+        <?php if ($userRole === 'colaborador'): ?>
+            <li class="nav-item">
+                <a href="<?= BASE_URL ?>index.php?route=portal" class="nav-link text-white <?= $current_route === 'portal' ? 'active' : '' ?>">
+                    <i class="bi bi-person-workspace me-2"></i> Mi Portal
+                </a>
+            </li>
+            <?php endif; ?>
+
     </ul>
     <hr>
     <div class="dropdown">
         <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
             <img src="https://via.placeholder.com/32" alt="" width="32" height="32" class="rounded-circle me-2">
-            <strong>Admin</strong>
+            <strong><?= htmlspecialchars($_SESSION['user_nombre'] ?? 'Usuario') ?></strong>
         </a>
         <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
             <li><a class="dropdown-item" href="#">Mi Perfil</a></li>
-            <li><a class="dropdown-item" href="#">Configuración</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="#">Cerrar Sesión</a></li>
+            <li><a class="dropdown-item" href="index.php?route=logout&action=logout">Cerrar Sesión</a></li>
         </ul>
     </div>
 </div>

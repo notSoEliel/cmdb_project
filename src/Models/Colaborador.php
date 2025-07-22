@@ -83,4 +83,15 @@ class Colaborador extends BaseModel
         Database::getInstance()->query($sql, $params);
         return true;
     }
+
+    /**
+     * Busca un colaborador por su email.
+     *
+     * @param string $email El email del colaborador.
+     * @return array|null
+     */
+    public function findByEmail(string $email)
+    {
+        return Database::getInstance()->query("SELECT * FROM {$this->tableName} WHERE email = :email", ['email' => $email])->find();
+    }
 }
