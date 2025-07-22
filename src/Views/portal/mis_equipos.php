@@ -23,8 +23,11 @@
                             <strong>Serie:</strong> <?= htmlspecialchars($equipo['serie']) ?>
                         </p>
                     </div>
-                    <div class="card-footer">
+                    <div class="card-footer d-flex justify-content-between align-items-center">
                         <small class="text-muted">Asignado el: <?= htmlspecialchars($equipo['fecha_asignacion'] ?? 'N/A') ?></small>
+                        <a href="index.php?route=portal&action=showEquipoImages&id=<?= htmlspecialchars($equipo['id']) ?>" class="btn btn-info btn-sm">
+                            <i class="bi bi-images me-1"></i> Ver Imágenes
+                        </a>
                     </div>
                 </div>
             </div>

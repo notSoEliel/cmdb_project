@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Core\Database;
+use App\Core\Database; // Asegúrate de que esta línea esté presente
 
 /**
  * Modelo Asignacion
@@ -80,5 +80,27 @@ class Asignacion
 
         Database::getInstance()->query($sql, ['inventario_id' => $inventario_id]);
         return true;
+    }
+
+    /**
+     * Verifica si un equipo está actualmente asignado a un colaborador específico.
+     *
+     * @param int $inventario_id El ID del equipo a verificar.
+     * @param int $colaborador_id El ID del colaborador.
+     * @return bool True si el equipo está asignado a ese colaborador y la asignación está activa, False en caso contrario.
+     */
+    public function isEquipoAssignedToColaborador(int $inventario_id, int $colaborador_id): bool
+    {
+        $sql = "SELECT COUNT(*) FROM asignaciones
+                WHERE inventario_id = :inventario_id
+                AND colaborador_id = :colaborador_id
+                AND fecha_devolucion IS NULL"; // Solo asignaciones activas
+
+        $result = Database::getInstance()->query($sql, [
+            'inventario_id' => $inventario_id,
+            'colaborador_id' => $colaborador_id
+        ])->find(); // Usamos find() y no get() porque esperamos solo un count
+
+        return $result['COUNT(*)'] > 0;
     }
 }

@@ -3,6 +3,8 @@
 namespace App\Controllers;
 
 use App\Models\Inventario;
+use App\Models\Asignacion; // Asegúrate de que esta línea exista para usar el modelo de Asignacion
+use App\Models\InventarioImagen; // Asegúrate de que esta línea exista para usar el modelo de InventarioImagen
 
 class PortalController extends BaseController
 {
@@ -55,6 +57,50 @@ class PortalController extends BaseController
             'equipos' => $equipos
         ]);
     }
+
+    /**
+     * Muestra todas las imágenes de un equipo específico asignado al colaborador logueado.
+     * Incluye una validación de seguridad para asegurar que el equipo pertenece al colaborador.
+     */
+    public function showEquipoImages()
+    {
+        $inventario_id = (int)($_GET['id'] ?? 0);
+        $colaboradorId = $_SESSION['user_id'] ?? 0; // ID del colaborador logueado
+
+        $inventarioModel = new Inventario();
+        $inventarioImagenModel = new InventarioImagen();
+        $asignacionModel = new Asignacion();
+
+        // 1. Verificar si el equipo existe
+        $equipo = $inventarioModel->findById($inventario_id);
+        if (!$equipo) {
+            http_response_code(404);
+            require_once '../src/Views/error-404.php';
+            exit;
+        }
+
+        // 2. Validar que el equipo esté asignado al colaborador actual
+        $isAssigned = $asignacionModel->isEquipoAssignedToColaborador($inventario_id, $colaboradorId);
+
+        if (!$isAssigned) {
+            // Si el equipo no está asignado al colaborador logueado, se deniega el acceso.
+            http_response_code(403); // Acceso denegado
+            require_once '../src/Views/error-403.php';
+            exit;
+        }
+
+        // 3. Obtener las imágenes del equipo
+        $imagenes = $inventarioImagenModel->findByInventarioId($inventario_id);
+
+        // 4. Renderizar la vista de imágenes (reutilizando la existente)
+        $this->render('Views/inventario/imagenes.php', [
+            'pageTitle' => 'Imágenes de ' . htmlspecialchars($equipo['nombre_equipo']),
+            'equipo' => $equipo,
+            'imagenes' => $imagenes,
+            'isPortalView' => true // Una bandera para la vista, si necesita ajustar algo para el portal
+        ]);
+    }
+
 
     /**
      * Procesa la actualización de la ubicación del colaborador.
