@@ -28,6 +28,7 @@ use App\Controllers\CategoriaController;
 use App\Controllers\ColaboradorController;
 use App\Controllers\InventarioController;
 use App\Controllers\DashboardController;
+use App\Controllers\NecesidadController;
 use App\Controllers\PortalController;
 
 // Mapa de rutas válidas de la aplicación
@@ -35,6 +36,7 @@ $validRoutes = [
     'login'         => AuthController::class,
     'logout'        => AuthController::class,
     'portal'        => PortalController::class,
+    'necesidades'   => NecesidadController::class, 
     'home'          => DashboardController::class,
     'inventario'    => InventarioController::class,
     'colaboradores' => ColaboradorController::class,

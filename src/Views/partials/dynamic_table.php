@@ -141,19 +141,24 @@ if (!empty($pagination['filters'])) {
                                 <?php endforeach; ?>
 
                                 <td class="text-end text-nowrap sticky-col last-col">
+
                                     <?php if ($currentRoute === 'inventario') : ?>
-                                        <?php // Si el equipo TIENE una asignación activa (independiente del estado)... 
-                                        ?>
-                                        <?php if (!empty($row['asignacion_id'])) : ?>
-                                            <form action="?route=inventario&action=unassign" method="POST" class="d-inline form-delete">
+                                        <?php if (!empty($row['notas_donacion'])): ?>
+                                            <button type="button" class="btn btn-sm btn-dark" title="Ver Notas"
+                                                data-bs-toggle="modal" data-bs-target="#notesModal"
+                                                data-notes="<?= htmlspecialchars($row['notas_donacion']) ?>">
+                                                <i class="bi bi-card-text"></i>
+                                            </button>
+                                        <?php endif; ?>
+
+                                        <?php if ($row['estado'] === 'En Stock') : ?>
+                                            <a href="?route=inventario&action=showAssignForm&id=<?= $row['id'] ?>" class="btn btn-sm btn-success" title="Asignar Equipo"><i class="bi bi-person-plus-fill"></i></a>
+                                        <?php elseif (!empty($row['asignacion_id'])) : ?>
+                                            <form action="?route=<?= $actions['unassign_route'] ?>" method="POST" class="d-inline form-delete">
                                                 <input type="hidden" name="inventario_id" value="<?= $row['id'] ?>">
                                                 <input type="hidden" name="asignacion_id" value="<?= $row['asignacion_id'] ?>">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Des-asignar de <?= htmlspecialchars($row['nombre_colaborador']) ?>"><i class="bi bi-person-dash-fill"></i></button>
                                             </form>
-                                            <?php // Si NO tiene asignación Y su estado es 'En Stock', se puede asignar. 
-                                            ?>
-                                        <?php elseif ($row['estado'] === 'En Stock') : ?>
-                                            <a href="?route=inventario&action=showAssignForm&id=<?= $row['id'] ?>" class="btn btn-sm btn-success" title="Asignar Equipo"><i class="bi bi-person-plus-fill"></i></a>
                                         <?php endif; ?>
                                     <?php endif; ?>
 
@@ -161,23 +166,26 @@ if (!empty($pagination['filters'])) {
                                         <a href="?route=inventario&colaborador_id=<?= $row['id'] ?>" class="btn btn-sm btn-primary" title="Ver Equipos Asignados"><i class="bi bi-hdd-stack"></i></a>
                                     <?php endif; ?>
 
-                                    <?php if (!empty($row['notas_donacion'])): ?>
-                                        <button type="button" class="btn btn-sm btn-dark" title="Ver Notas"
-                                            data-bs-toggle="modal" data-bs-target="#notesModal"
-                                            data-notes="<?= htmlspecialchars($row['notas_donacion']) ?>">
-                                            <i class="bi bi-card-text"></i>
-                                        </button>
-                                    <?php endif; ?>
-
                                     <?php if (isset($actions['image_route'])) : ?>
                                         <a href="?route=<?= $actions['image_route'] ?>&id=<?= $row['id'] ?>" class="btn btn-sm btn-info" title="Gestionar Imágenes"><i class="bi bi-images"></i></a>
                                     <?php endif; ?>
 
-                                    <?php $editParams = array_merge($queryParams, ['editar_id' => $row['id']]); ?>
-                                    <a href="?<?= http_build_query($editParams) ?>" class="btn btn-sm btn-warning" title="Editar"><i class="bi bi-pencil-fill"></i></a>
-                                    <form action="?route=<?= $actions['delete_route'] ?>" method="POST" class="d-inline form-delete">
-                                        <input type="hidden" name="id" value="<?= $row['id'] ?>"><button type="submit" class="btn btn-sm btn-danger" title="Eliminar"><i class="bi bi-trash-fill"></i></button>
-                                    </form>
+                                    <?php if (isset($actions['edit_action'])) : ?>
+                                        <?php
+                                        $editParams = array_merge($queryParams, [
+                                            'action' => $actions['edit_action'],
+                                            'id' => $row['id'] // Usamos 'id' para ser consistentes
+                                        ]);
+                                        ?>
+                                        <a href="?<?= http_build_query($editParams) ?>" class="btn btn-sm btn-warning" title="Editar / Gestionar"><i class="bi bi-pencil-fill"></i></a>
+                                    <?php endif; ?>
+
+                                    <?php if (isset($actions['delete_route'])) : ?>
+                                        <form action="?route=<?= $actions['delete_route'] ?>" method="POST" class="d-inline form-delete">
+                                            <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Eliminar"><i class="bi bi-trash-fill"></i></button>
+                                        </form>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                     <?php endforeach;

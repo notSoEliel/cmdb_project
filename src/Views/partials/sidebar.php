@@ -28,6 +28,12 @@ $current_route = $_GET['route'] ?? 'home';
                 </a>
             </li>
             <li>
+                <a href="<?= BASE_URL ?>index.php?route=necesidades&action=adminIndex" class="nav-link text-white <?= $current_route === 'necesidades' ? 'active' : '' ?>">
+                    <i class="bi bi-patch-question-fill me-2"></i>
+                    Solicitudes
+                </a>
+            </li>
+            <li>
                 <a href="<?= BASE_URL ?>index.php?route=categorias" class="nav-link text-white <?= $current_route === 'categorias' ? 'active' : '' ?>">
                     <i class="bi bi-tags me-2"></i> Categorías
                 </a>
@@ -45,7 +51,12 @@ $current_route = $_GET['route'] ?? 'home';
                     <i class="bi bi-hdd-stack-fill me-2"></i> Mis Equipos
                 </a>
             </li>
-
+            <li>
+                <a href="<?= BASE_URL ?>index.php?route=necesidades&action=misSolicitudes" class="nav-link text-white <?= $current_route === 'necesidades' ? 'active' : '' ?>">
+                    <i class="bi bi-patch-question me-2"></i>
+                    Mis Solicitudes
+                </a>
+            </li>
         <?php endif; ?>
 
     </ul>
