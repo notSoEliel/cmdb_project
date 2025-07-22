@@ -13,18 +13,27 @@
             display: flex;
             min-height: 100vh;
             flex-direction: row;
+            overflow: hidden;
         }
 
         .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
             width: 280px;
-            flex-shrink: 0;
+            overflow-y: auto;
+            background-color: #212529;
+            z-index: 100;
         }
 
         .content-wrapper {
             flex-grow: 1;
+            margin-left: 280px;
+            height: 100vh;
+            overflow-y: auto;
             padding: 2rem;
             background-color: #f8f9fa;
-            min-width: 0;
         }
 
         label.error {
@@ -118,7 +127,7 @@
 
     <?= $validationScript ?? '' ?>
 
-    <script src="<?= BASE_URL ?>js/app.js"></script> </body>
+    <script src="<?= BASE_URL ?>js/app.js"></script>
 </body>
 
 </html>
