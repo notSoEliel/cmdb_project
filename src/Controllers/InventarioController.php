@@ -126,7 +126,7 @@ class InventarioController extends BaseController
         // --- 5. Renderizado de la Vista ---
         $this->render('Views/inventario/index.php', [
             'pageTitle' => 'Gestionar Inventario',
-            'formId' => 'form-inventario',
+            'formIds' => ['form-inventario'],
             'categorias' => $categoriaModel->findAll(), // Para el formulario de agregar/editar
             'tableConfig' => $tableConfig // Pasamos toda la configuración a la vista
         ]);

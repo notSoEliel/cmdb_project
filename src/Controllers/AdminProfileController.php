@@ -15,7 +15,7 @@ class AdminProfileController extends BaseController
         $this->render('Views/admin/profile/index.php', [
             'pageTitle' => 'Mi Perfil de Administrador',
             'admin' => $admin,
-            'formId' => 'form-admin-password'
+            'formIds' => ['form-admin-password'],
         ]);
     }
 

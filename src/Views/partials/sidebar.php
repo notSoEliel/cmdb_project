@@ -69,7 +69,7 @@ $current_route = $_GET['route'] ?? 'home';
     <hr>
     <div class="dropdown">
         <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-            <img src="https://via.placeholder.com/32" alt="" width="32" height="32" class="rounded-circle me-2">
+            <img src="<?= BASE_URL . 'assets/default-avatar.png' ?>" alt="" width="32" height="32" class="rounded-circle me-2">
             <strong><?= htmlspecialchars($_SESSION['user_nombre'] ?? 'Usuario') ?></strong>
         </a>
         <ul class="dropdown-menu dropdown-menu-dark text-small shadow">

@@ -43,7 +43,7 @@ class UsuarioController extends BaseController
 
         $this->render('Views/admin/usuarios/index.php', [
             'pageTitle' => 'Gestionar Usuarios Admin',
-            'formId' => 'form-usuario',
+            'formIds' => ['form-usuario'],
             'tableConfig' => $tableConfig
         ]);
     }

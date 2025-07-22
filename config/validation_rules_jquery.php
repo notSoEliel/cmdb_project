@@ -110,4 +110,20 @@ return [
             'password' => ['minlength' => 'La contraseña debe tener al menos 8 caracteres.']
         ]
     ],
+
+    // Reglas para cambio de contraseña de perfil de administradores
+    'form-admin-password' => [
+        'rules' => [
+            'current_password' => ['required' => true],
+            'new_password' => ['required' => true, 'minlength' => 8],
+            'confirm_password' => [
+                'required' => true,
+                'equalTo' => '#new_password'
+            ]
+        ],
+        'messages' => [
+            'new_password' => ['minlength' => 'La contraseña debe tener al menos 8 caracteres.'],
+            'confirm_password' => ['equalTo' => 'Las contraseñas no coinciden.']
+        ]
+    ],
 ];

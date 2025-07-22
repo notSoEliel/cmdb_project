@@ -71,7 +71,7 @@ class ColaboradorController extends BaseController
         // 5. Renderizado de la Vista (sin cambios)
         $this->render('Views/colaboradores/index.php', [
             'pageTitle' => 'Gestionar Colaboradores',
-            'formId' => 'form-colaborador',
+            'formId' => ['form-colaborador'],
             'tableConfig' => $tableConfig
         ]);
     }
