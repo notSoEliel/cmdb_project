@@ -90,5 +90,8 @@ composer.phar
 # Ignore public/uploads/
 
 public/uploads/
+exec.txt
+temp.php
+temp2.php
 
 # End of https://www.toptal.com/developers/gitignore/api/composer
