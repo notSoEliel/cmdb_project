@@ -2,90 +2,38 @@
 <html lang="es">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><?= $pageTitle ?? 'CMDB' ?></title>
+
+    <!-- Bootstrap & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <style>
-        body {
-            display: flex;
-            min-height: 100vh;
-            flex-direction: row;
-            overflow: hidden;
-        }
-
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            width: 280px;
-            overflow-y: auto;
-            background-color: #212529;
-            z-index: 100;
-        }
-
-        .content-wrapper {
-            flex-grow: 1;
-            margin-left: 280px;
-            height: 100vh;
-            overflow-y: auto;
-            padding: 2rem;
-            background-color: #f8f9fa;
-        }
-
-        label.error {
-            color: #dc3545;
-            font-size: 0.875em;
-        }
-
-        input.error,
-        select.error {
-            border-color: #dc3545 !important;
-        }
-
-        .table-responsive-sticky {
-            overflow-x: auto;
-            position: relative;
-        }
-
-        .table-responsive-sticky th,
-        .table-responsive-sticky td {
-            white-space: nowrap;
-        }
-
-        .sticky-col {
-            position: -webkit-sticky;
-            position: sticky;
-            background-color: #ffffff;
-            /* Un fondo blanco se ve mejor en las celdas fijas */
-        }
-
-        .first-col {
-            left: 0;
-            z-index: 2;
-        }
-
-        .last-col {
-            right: 0;
-            z-index: 2;
-        }
-    </style>
+    <!-- Tu CSS principal -->
+    <link rel="stylesheet" href="<?= BASE_URL ?>css/style.css">
 </head>
 
 <body>
-    <div class="sidebar">
-        <?php require_once 'partials/sidebar.php'; // Incluimos el menú lateral 
-        ?>
-    </div>
+    <!-- Botón Hamburguesa (z-index alto para que siempre esté encima del overlay) -->
+    <button
+        class="btn toggle-sidebar d-lg-none"
+        style="position: fixed; top: 1rem; left: 1rem; z-index: 115;">
+        <i class="bi bi-list"></i>
+    </button>
 
+    <!-- Sidebar -->
+   <?php require_once 'partials/sidebar.php'; ?>
+
+    <!-- Overlay (ahora justo después del sidebar, para poder usar + si quisieras) -->
+    <div class="sidebar-overlay d-lg-none"></div>
+
+    <!-- Contenido principal -->
     <main class="content-wrapper">
-        <?= $content ?? '' // Aquí se renderizará el contenido de cada página 
-        ?>
+        <?= $content ?? '' ?>
     </main>
 
+    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.20.0/dist/jquery.validate.min.js"></script>
@@ -103,30 +51,31 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.form-delete').forEach(form => {
-                form.addEventListener('submit', function(event) {
-                    event.preventDefault();
-                    Swal.fire({
-                        title: '¿Estás seguro?',
-                        text: "¡No podrás revertir esta acción!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Sí, ¡bórralo!',
-                        cancelButtonText: 'Cancelar'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            this.submit();
-                        }
-                    });
-                });
+            const sidebar = document.querySelector('.sidebar');
+            const toggleBtn = document.querySelector('.toggle-sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+
+            toggleBtn?.addEventListener('click', function() {
+                sidebar.classList.toggle('show');
+                overlay.style.display = sidebar.classList.contains('show') ? 'block' : 'none';
+            });
+
+            overlay?.addEventListener('click', function() {
+                sidebar.classList.remove('show');
+                overlay.style.display = 'none';
+            });
+
+            // Al pasar a desktop, cerramos el sidebar y ocultamos overlay
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove('show');
+                    overlay.style.display = 'none';
+                }
             });
         });
     </script>
 
     <?= $validationScript ?? '' ?>
-
     <script src="<?= BASE_URL ?>js/app.js"></script>
 </body>
 
