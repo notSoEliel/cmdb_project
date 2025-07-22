@@ -10,7 +10,7 @@ $current_route = $_GET['route'] ?? 'home';
     </a>
     <hr>
     <ul class="nav nav-pills flex-column mb-auto">
-        
+
         <?php if ($userRole === 'admin'): ?>
             <li class="nav-item">
                 <a href="<?= BASE_URL ?>" class="nav-link text-white <?= $current_route === 'home' ? 'active' : '' ?>">
@@ -36,11 +36,17 @@ $current_route = $_GET['route'] ?? 'home';
 
         <?php if ($userRole === 'colaborador'): ?>
             <li class="nav-item">
-                <a href="<?= BASE_URL ?>index.php?route=portal" class="nav-link text-white <?= $current_route === 'portal' ? 'active' : '' ?>">
+                <a href="<?= BASE_URL ?>index.php?route=portal" class="nav-link text-white <?= $current_route === 'portal' && ($_GET['action'] ?? 'index') === 'index' ? 'active' : '' ?>">
                     <i class="bi bi-person-workspace me-2"></i> Mi Portal
                 </a>
             </li>
-            <?php endif; ?>
+            <li>
+                <a href="<?= BASE_URL ?>index.php?route=portal&action=misEquipos" class="nav-link text-white <?= ($_GET['action'] ?? '') === 'misEquipos' ? 'active' : '' ?>">
+                    <i class="bi bi-hdd-stack-fill me-2"></i> Mis Equipos
+                </a>
+            </li>
+
+        <?php endif; ?>
 
     </ul>
     <hr>
@@ -50,9 +56,15 @@ $current_route = $_GET['route'] ?? 'home';
             <strong><?= htmlspecialchars($_SESSION['user_nombre'] ?? 'Usuario') ?></strong>
         </a>
         <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
-            <li><a class="dropdown-item" href="#">Mi Perfil</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="index.php?route=logout&action=logout">Cerrar Sesión</a></li>
+            <li>
+                <a class="dropdown-item" href="index.php?route=portal&action=showProfile">
+                    <i class="bi bi-person-fill me-2"></i>Mi Perfil
+                </a>
+            </li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <li><a class="dropdown-item" href="index.php?route=logout&action=logout"><i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</a></li>
         </ul>
     </div>
 </div>

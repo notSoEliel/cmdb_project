@@ -85,6 +85,40 @@ class Colaborador extends BaseModel
     }
 
     /**
+     * Actualiza únicamente la ubicación de un colaborador específico.
+     *
+     * @param integer $id El ID del colaborador.
+     * @param string $location La nueva ubicación.
+     * @return boolean
+     */
+    public function updateLocation(int $id, string $location): bool
+    {
+        $sql = "UPDATE {$this->tableName} SET ubicacion = :ubicacion WHERE id = :id";
+        Database::getInstance()->query($sql, [
+            'ubicacion' => $location,
+            'id' => $id
+        ]);
+        return true;
+    }
+
+    /**
+     * Actualiza únicamente la contraseña de un colaborador.
+     *
+     * @param integer $id El ID del colaborador.
+     * @param string $newPasswordHash La nueva contraseña ya hasheada.
+     * @return boolean
+     */
+    public function updatePassword(int $id, string $newPasswordHash): bool
+    {
+        $sql = "UPDATE {$this->tableName} SET password_hash = :password_hash WHERE id = :id";
+        Database::getInstance()->query($sql, [
+            'password_hash' => $newPasswordHash,
+            'id' => $id
+        ]);
+        return true;
+    }
+
+    /**
      * Busca un colaborador por su email.
      *
      * @param string $email El email del colaborador.

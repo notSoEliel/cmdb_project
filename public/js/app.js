@@ -1,43 +1,70 @@
-// Espera a que el DOM esté cargado para ejecutar el script
+// Espera a que todo el contenido de la página (DOM) esté cargado antes de ejecutar cualquier script.
 document.addEventListener('DOMContentLoaded', function() {
 
-    // Busca el botón del ojo y el campo de contraseña por sus IDs
-    const togglePasswordButton = document.getElementById('togglePassword');
-    const passwordInput = document.getElementById('password');
-    const passwordIcon = document.getElementById('togglePasswordIcon');
+    // --- Lógica para el modo de edición de UBICACIÓN en el perfil ---
+    const viewLocationDiv = document.getElementById('view-location-div');
+    const editLocationDiv = document.getElementById('edit-location-div');
+    const btnChangeLocation = document.getElementById('btn-change-location');
+    const btnCancelLocation = document.getElementById('btn-cancel-location');
 
-    // Si no encuentra el botón en la página, no hace nada más
-    if (!togglePasswordButton) {
-        return;
+    // Se ejecuta solo si encuentra los elementos en la página actual.
+    if (viewLocationDiv && editLocationDiv && btnChangeLocation && btnCancelLocation) {
+        btnChangeLocation.addEventListener('click', function() {
+            viewLocationDiv.style.display = 'none';
+            editLocationDiv.style.display = 'block';
+        });
+        btnCancelLocation.addEventListener('click', function() {
+            editLocationDiv.style.display = 'none';
+            viewLocationDiv.style.display = 'flex';
+        });
     }
 
-    // Añade un evento 'click' al botón
-    togglePasswordButton.addEventListener('click', function() {
-        // Revisa el tipo actual del campo de contraseña
-        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-        passwordInput.setAttribute('type', type);
+    // --- Lógica para el modo de edición de CONTRASEÑA en el perfil ---
+    const viewPasswordDiv = document.getElementById('view-password-div');
+    const editPasswordDiv = document.getElementById('edit-password-div');
+    const btnChangePassword = document.getElementById('btn-change-password');
+    const btnCancelPassword = document.getElementById('btn-cancel-password');
 
-        // Cambia el ícono del ojo
-        if (type === 'password') {
-            passwordIcon.classList.remove('bi-eye-slash-fill');
-            passwordIcon.classList.add('bi-eye-fill');
-        } else {
-            passwordIcon.classList.remove('bi-eye-fill');
-            passwordIcon.classList.add('bi-eye-slash-fill');
+    // Se ejecuta solo si encuentra los elementos en la página actual.
+    if (viewPasswordDiv && editPasswordDiv && btnChangePassword && btnCancelPassword) {
+        btnChangePassword.addEventListener('click', function() {
+            viewPasswordDiv.style.display = 'none';
+            editPasswordDiv.style.display = 'block';
+        });
+        btnCancelPassword.addEventListener('click', function() {
+            editPasswordDiv.style.display = 'none';
+            viewPasswordDiv.style.display = 'flex';
+        });
+    }
+
+    // --- Lógica REUTILIZABLE para los botones de "ojo" de las contraseñas ---
+    function setupPasswordToggle(inputId, buttonId) {
+        const passwordInput = document.getElementById(inputId);
+        const toggleButton = document.getElementById(buttonId);
+
+        if (passwordInput && toggleButton) {
+            toggleButton.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.querySelector('i').classList.toggle('bi-eye-fill');
+                this.querySelector('i').classList.toggle('bi-eye-slash-fill');
+            });
         }
-    });
-});
+    }
 
-// Lógica para el modal de notas
-const notesModal = document.getElementById('notesModal');
-if (notesModal) {
-    notesModal.addEventListener('show.bs.modal', function(event) {
-        // Botón que activó el modal
-        const button = event.relatedTarget;
-        // Extraer la información de los atributos data-*
-        const notes = button.getAttribute('data-notes');
-        // Actualizar el contenido del modal
-        const modalBody = notesModal.querySelector('#notesModalBody');
-        modalBody.textContent = notes;
-    });
-}
+    // Se inicializa la funcionalidad para cada campo de contraseña que exista en la página.
+    setupPasswordToggle('current_password', 'toggleCurrentPassword');
+    setupPasswordToggle('new_password', 'toggleNewPassword');
+    setupPasswordToggle('confirm_password', 'toggleConfirmPassword');
+
+    // --- Lógica para el modal de NOTAS en la tabla de inventario ---
+    const notesModal = document.getElementById('notesModal');
+    if (notesModal) {
+        notesModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const notes = button.getAttribute('data-notes');
+            const modalBody = notesModal.querySelector('#notesModalBody');
+            modalBody.textContent = notes;
+        });
+    }
+});
