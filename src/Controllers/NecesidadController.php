@@ -100,11 +100,10 @@ class NecesidadController extends BaseController
                 'filters' => []
             ],
             'actions' => [
-                // Definimos solo la ruta para editar/gestionar.
-                // Como no definimos 'delete_route', el botón de eliminar no aparecerá.
                 'route' => 'necesidades',
                 'edit_action' => 'showUpdateForm',
-            ]
+                // No hay delete_action para las solicitudes
+            ],
         ];
 
         $this->render('Views/admin/necesidades/index.php', [

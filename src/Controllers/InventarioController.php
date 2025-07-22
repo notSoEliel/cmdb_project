@@ -102,10 +102,11 @@ class InventarioController extends BaseController
                 'filters' => $filters
             ],
             'actions' => [
-                'edit_route' => 'inventario&action=index',
-                'delete_route' => 'inventario&action=destroy',
-                'image_route' => 'inventario&action=showImages',
-                'unassign_route' => 'inventario&action=unassign' // Nueva acción para des-asignar
+                'route' => 'inventario', // Ruta base para las acciones
+                'edit_action' => 'index',      // La acción para editar es 'index'
+                'delete_action' => 'destroy',
+                'unassign_action' => 'unassign',
+                'image_action' => 'showImages'
             ],
             // Configuración para el nuevo dropdown de filtro
             'dropdown_filters' => [

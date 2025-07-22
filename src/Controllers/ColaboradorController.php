@@ -62,9 +62,10 @@ class ColaboradorController extends BaseController
                 'filters' => []
             ],
             'actions' => [
-                'edit_route' => 'colaboradores&action=index',
-                'delete_route' => 'colaboradores&action=destroy',
-            ]
+                'route' => 'colaboradores',
+                'edit_action' => 'index',
+                'delete_action' => 'destroy',
+            ],
         ];
 
         // 5. Renderizado de la Vista (sin cambios)
@@ -95,7 +96,7 @@ class ColaboradorController extends BaseController
     /**
      * Procesa la actualización de un colaborador existente.
      */
-   public function update()
+    public function update()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {

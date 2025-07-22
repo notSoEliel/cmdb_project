@@ -57,9 +57,10 @@ class CategoriaController extends BaseController
                 'filters' => []
             ],
             'actions' => [
-                'edit_route' => 'categorias&action=index',
-                'delete_route' => 'categorias&action=destroy',
-            ]
+                'route' => 'categorias',
+                'edit_action' => 'index',
+                'delete_action' => 'destroy',
+            ],
         ];
 
         // 5. Renderiza la vista, pasándole la configuración.
