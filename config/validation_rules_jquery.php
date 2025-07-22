@@ -86,4 +86,18 @@ return [
             'ubicacion' => ['required' => 'La ubicación no puede estar vacía.']
         ]
     ],
+
+    // Reglas para el form de Usuarios (admins)
+    'form-usuario' => [
+        'rules' => [
+            'nombre' => ['required' => true, 'maxlength' => 50],
+            'email' => ['required' => true, 'email' => true],
+            'password' => ['minlength' => 8] // No es requerido al editar
+        ],
+        'messages' => [
+            'nombre' => ['required' => 'El nombre es obligatorio.'],
+            'email' => ['required' => 'El email es obligatorio.', 'email' => 'Introduce un email válido.'],
+            'password' => ['minlength' => 'La contraseña debe tener al menos 8 caracteres.']
+        ]
+    ],
 ];

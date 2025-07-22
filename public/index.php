@@ -30,13 +30,15 @@ use App\Controllers\InventarioController;
 use App\Controllers\DashboardController;
 use App\Controllers\NecesidadController;
 use App\Controllers\PortalController;
+use App\Controllers\UsuarioController;
 
 // Mapa de rutas válidas de la aplicación
 $validRoutes = [
     'login'         => AuthController::class,
     'logout'        => AuthController::class,
     'portal'        => PortalController::class,
-    'necesidades'   => NecesidadController::class, 
+    'necesidades'   => NecesidadController::class,
+    'usuarios'      => UsuarioController::class,
     'home'          => DashboardController::class,
     'inventario'    => InventarioController::class,
     'colaboradores' => ColaboradorController::class,

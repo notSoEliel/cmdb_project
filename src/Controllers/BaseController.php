@@ -25,8 +25,27 @@ abstract class BaseController
 
         // Definimos qué rutas requieren qué rol.
         $protectedRoutes = [
-            'admin' => ['home', 'inventario', 'colaboradores', 'categorias'],
-            'colaborador' => ['portal'] // Añadiremos más aquí después
+            // Rutas exclusivas para 'admin'
+            'home'          => ['role' => 'admin'],
+            'inventario'    => ['role' => 'admin'],
+            'colaboradores' => ['role' => 'admin'],
+            'categorias'    => ['role' => 'admin'],
+            'usuarios'      => ['role' => 'admin'],
+
+            // Rutas exclusivas para 'colaborador'
+            'portal'        => ['role' => 'colaborador'],
+
+            // Ruta con acciones para roles mixtos
+            'necesidades'   => [
+                'actions' => [
+                    'adminIndex'      => 'admin',
+                    'showUpdateForm'  => 'admin',
+                    'updateStatus'    => 'admin',
+                    'misSolicitudes'  => 'colaborador',
+                    'showForm'        => 'colaborador',
+                    'store'           => 'colaborador',
+                ]
+            ]
         ];
 
         // 1. Revisa si la ruta actual está protegida para algún rol.

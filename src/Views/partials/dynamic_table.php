@@ -118,6 +118,13 @@ if (!empty($pagination['filters'])) {
                                             $badges = ['En Stock' => 'bg-success', 'Asignado' => 'bg-primary', 'En Reparación' => 'bg-info text-dark', 'Dañado' => 'bg-warning text-dark', 'En Descarte' => 'bg-secondary', 'Donado' => 'bg-dark'];
                                             $badge_class = $badges[$cellValue] ?? 'bg-light text-dark';
                                             echo '<span class="badge ' . $badge_class . '">' . htmlspecialchars($cellValue) . '</span>';
+                                        } elseif ($column['field'] === 'activo') {
+                                            // Nueva lógica para los badges de estado de USUARIO/ADMIN
+                                            if ($cellValue == 1) {
+                                                echo '<span class="badge bg-success">Activo</span>';
+                                            } else {
+                                                echo '<span class="badge bg-secondary">Inactivo</span>';
+                                            }
                                         } elseif ($column['field'] === 'fecha_fin_vida' && !empty($row['fecha_fin_vida'])) {
                                             $fechaFin = new DateTime($row['fecha_fin_vida']);
                                             $hoy = new DateTime();
@@ -172,11 +179,17 @@ if (!empty($pagination['filters'])) {
 
                                     <?php if (isset($actions['edit_action'])) : ?>
                                         <?php
-                                        $editParams = array_merge($queryParams, [
-                                            'action' => $actions['edit_action'],
-                                            'id' => $row['id'] // Usamos 'id' para ser consistentes
-                                        ]);
+                                            // Cambiamos 'id' de vuelta a 'editar_id' para que las vistas lo reconozcan.
+                                            $editParams = array_merge($queryParams, [
+                                                'action' => $actions['edit_action'],
+                                                'editar_id' => $row['id']
+                                            ]);
                                         ?>
+                                        <a href="?<?= http_build_query($editParams) ?>" class="btn btn-sm btn-warning" title="Editar / Gestionar"><i class="bi bi-pencil-fill"></i></a>
+                                    <?php endif; ?>
+
+                                    <?php if (isset($actions['edit_route'])) : ?>
+                                        <?php $editParams = array_merge($queryParams, ['id' => $row['id'], 'action' => $actions['edit_action'] ?? '']); ?>
                                         <a href="?<?= http_build_query($editParams) ?>" class="btn btn-sm btn-warning" title="Editar / Gestionar"><i class="bi bi-pencil-fill"></i></a>
                                     <?php endif; ?>
 

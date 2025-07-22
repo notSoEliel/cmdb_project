@@ -38,6 +38,12 @@ $current_route = $_GET['route'] ?? 'home';
                     <i class="bi bi-tags me-2"></i> Categorías
                 </a>
             </li>
+            <li>
+                <a href="<?= BASE_URL ?>index.php?route=usuarios" class="nav-link text-white <?= $current_route === 'usuarios' ? 'active' : '' ?>">
+                    <i class="bi bi-person-gear me-2"></i>
+                    Usuarios Admin
+                </a>
+            </li>
         <?php endif; ?>
 
         <?php if ($userRole === 'colaborador'): ?>
