@@ -67,9 +67,13 @@ class ValidationService
         if (!empty($finalScript)) {
             $fullScript = "<script>\n";
             $fullScript .= "$(document).ready(function() {\n";
-            $fullScript .= "    // Reglas personalizadas (solo se definen una vez) \n";
-            $fullScript .= "    $.validator.addMethod('phonePA', function(value, element) { return this.optional(element) || /^\\d{3,4}-\\d{4}$/.test(value); }, 'Formato: XXXX-XXXX.');\n";
-            $fullScript .= $finalScript; // Aquí se insertan todos los bloques .validate()
+            // Se actualiza la expresión regular y el mensaje de error para las nuevas reglas.
+            $fullScript .= "    $.validator.addMethod('phonePA', function(value, element) { \n";
+            $fullScript .= "        let cleanValue = value.replace(/-/g, '');\n";
+            $fullScript .= "        return this.optional(element) || /^(6\\d{7}|[2-9]\\d{6})$/.test(cleanValue); \n";
+            $fullScript .= "    }, 'Debe ser un número de 7 dígitos (fijo) o de 8 dígitos (móvil empezando con 6).');\n";
+             // Aquí se insertan todos los bloques .validate()
+            $fullScript .= $finalScript;
             $fullScript .= "});\n";
             $fullScript .= "</script>";
             return $fullScript;
