@@ -67,4 +67,21 @@ document.addEventListener('DOMContentLoaded', function() {
             modalBody.textContent = notes;
         });
     }
+
+    // --- Lógica para generar una IP aleatoria ---
+    const btnGenerateIp = document.getElementById('btn-generate-ip');
+    const ipInput = document.getElementById('ip_asignada');
+
+    if (btnGenerateIp && ipInput) {
+        btnGenerateIp.addEventListener('click', function() {
+            // Genera 4 números aleatorios entre 1 y 254
+            const octet1 = Math.floor(Math.random() * 254) + 1;
+            const octet2 = Math.floor(Math.random() * 255);
+            const octet3 = Math.floor(Math.random() * 255);
+            const octet4 = Math.floor(Math.random() * 254) + 1;
+
+            // Une los números con puntos y los pone en el campo de texto
+            ipInput.value = `${octet1}.${octet2}.${octet3}.${octet4}`;
+        });
+    }
 });

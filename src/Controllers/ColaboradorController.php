@@ -83,7 +83,7 @@ class ColaboradorController extends BaseController
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
-                (new Colaborador())->save($_POST);
+                (new Colaborador())->save($_POST, $_FILES);
                 $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Colaborador creado.', 'icon' => 'success'];
             } catch (\Throwable $e) {
                 handleException($e); // <-- LLAMAMOS A NUESTRO HELPER
@@ -100,7 +100,7 @@ class ColaboradorController extends BaseController
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
-                (new Colaborador())->save($_POST);
+                (new Colaborador())->save($_POST, $_FILES);
                 $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Colaborador actualizado.', 'icon' => 'success'];
             } catch (\Throwable $e) {
                 handleException($e); // <-- LLAMAMOS A NUESTRO HELPER

@@ -10,7 +10,12 @@ return [
             'email' => ['required' => true, 'email' => true],
             'ubicacion' => ['required' => true],
             'telefono' => ['required' => true, 'phonePA' => true],
-            'password' => ['minlength' => 8]
+            'password' => ['minlength' => 8],
+            'departamento' => ['required' => true],
+            'ip_asignada' => ['ipv4' => true],
+            'foto_perfil' => [
+                'accept' => 'image/jpeg, image/png, image/gif'
+            ],
         ],
         'messages' => [
             'nombre' => ['required' => 'El nombre es obligatorio.'],
@@ -19,7 +24,12 @@ return [
             'email' => ['required' => 'El email es obligatorio.', 'email' => 'Por favor, introduce un email válido.'],
             'ubicacion' => ['required' => 'La ubicación es obligatoria.'],
             'telefono' => ['required' => 'El teléfono es obligatorio.'],
-            'password' => ['minlength' => 'La contraseña debe tener al menos 8 caracteres.']
+            'password' => ['minlength' => 'La contraseña debe tener al menos 8 caracteres.'],
+            'departamento' => ['required' => 'El departamento es obligatorio.'],
+            'ip_asignada' => ['ipv4' => 'La IP asignada debe ser una dirección IPv4 válida.'],
+            'foto_perfil' => [
+                'accept' => 'Solo se permiten archivos de imagen (jpg, png, gif).'
+            ]
         ]
     ],
 
@@ -47,7 +57,7 @@ return [
         ]
     ],
 
-    // Reglas para cambio de contraseña
+    // Reglas para cambio de contraseña de perfil de colaboradores
     'form-password' => [
         'rules' => [
             'current_password' => [

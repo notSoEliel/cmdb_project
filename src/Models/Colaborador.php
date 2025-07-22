@@ -52,11 +52,24 @@ class Colaborador extends BaseModel
         $params = [
             'nombre' => $data['nombre'],
             'apellido' => $data['apellido'],
+            'departamento' => $data['departamento'] ?? null,
             'identificacion_unica' => $data['identificacion_unica'],
             'email' => $data['email'],
             'ubicacion' => $data['ubicacion'],
             'telefono' => $data['telefono'],
+            'ip_asignada' => $data['ip_asignada'] ?? null,
         ];
+
+        // --- LÓGICA PARA SUBIR LA IMAGEN ---
+        if (isset($files['foto_perfil']) && $files['foto_perfil']['error'] === UPLOAD_ERR_OK) {
+            $uploadDir = '../public/uploads/colaboradores/';
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+            $fileName = uniqid() . '-' . basename($files['foto_perfil']['name']);
+            if (move_uploaded_file($files['foto_perfil']['tmp_name'], $uploadDir . $fileName)) {
+                $params['foto_perfil'] = $fileName; // Añade el nombre del archivo a los parámetros
+            }
+        }
+
 
         if (!empty($data['password'])) {
             $params['password_hash'] = password_hash($data['password'], PASSWORD_DEFAULT);

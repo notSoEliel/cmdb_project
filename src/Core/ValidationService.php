@@ -50,8 +50,15 @@ class ValidationService
             $script .= "    });\n";
 
             // Lógica condicional para la contraseña en el form de colaborador
-            if ($formId === 'form-colaborador' && !empty($_GET['editar_id'])) {
-                $script .= "    $('input[name=\"password\"]').rules('remove', 'required');\n";
+            // Se aplica la lógica condicional de la contraseña a ambos formularios
+            if ($formId === 'form-colaborador' || $formId === 'form-usuario') {
+                // Si el campo 'id' tiene un valor (estamos editando), la contraseña no es obligatoria.
+                if (!empty($_GET['editar_id'])) {
+                    $script .= "    $('input[name=\"password\"]').rules('remove', 'required');\n";
+                } else {
+                    // Si no (estamos creando), la contraseña SÍ es obligatoria.
+                    $script .= "    $('input[name=\"password\"]').rules('add', { required: true, messages: { required: 'La contraseña es obligatoria al crear.' } });\n";
+                }
             }
 
             // Lógica condicional para la contraseña en el form de perfil
@@ -65,17 +72,13 @@ class ValidationService
 
         // Si se generó algún script, lo envuelve en las etiquetas necesarias.
         if (!empty($finalScript)) {
-            $fullScript = "<script>\n";
-            $fullScript .= "$(document).ready(function() {\n";
-            // Se actualiza la expresión regular y el mensaje de error para las nuevas reglas.
-            $fullScript .= "    $.validator.addMethod('phonePA', function(value, element) { \n";
-            $fullScript .= "        let cleanValue = value.replace(/-/g, '');\n";
-            $fullScript .= "        return this.optional(element) || /^(6\\d{7}|[2-9]\\d{6})$/.test(cleanValue); \n";
-            $fullScript .= "    }, 'Debe ser un número de 7 dígitos (fijo) o de 8 dígitos (móvil empezando con 6).');\n";
-             // Aquí se insertan todos los bloques .validate()
+            $fullScript = "<script>\n$(document).ready(function() {\n";
+            // Se añaden todas las reglas personalizadas aquí
+            $fullScript .= "    $.validator.addMethod('phonePA', function(value, element) { let cleanValue = value.replace(/-/g, ''); return this.optional(element) || /^(6\\d{7}|[2-9]\\d{6})$/.test(cleanValue); }, 'Debe ser un número válido de Panamá.');\n";
+            $fullScript .= "    $.validator.addMethod('ipv4', function(value, element) { return this.optional(element) || /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(value); }, 'Por favor, introduce una dirección IP v4 válida.');\n";
+            // Fin de las reglas personalizadas
             $fullScript .= $finalScript;
-            $fullScript .= "});\n";
-            $fullScript .= "</script>";
+            $fullScript .= "});\n</script>";
             return $fullScript;
         }
 
