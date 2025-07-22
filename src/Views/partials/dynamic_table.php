@@ -75,7 +75,7 @@ if (!empty($pagination['filters'])) {
     </div>
 
     <div class="card-body">
-        <div class="table-responsive-sticky">
+        <div class="table-responsive">
             <table class="table table-striped table-hover">
                 <thead>
                     <tr>
@@ -168,7 +168,7 @@ if (!empty($pagination['filters'])) {
                                     <?php endif; ?>
 
                                     <?php if (isset($actions['edit_action'])) : ?>
-                                        <?php // CASO ESPECIAL: Para la tabla de 'necesidades', creamos un enlace simple a la página de edición. 
+                                        <?php // CASO ESPECIAL: Para la tabla de 'necesidades', creamos un enlace simple a la página de edición.
                                         ?>
                                         <?php if ($currentRoute === 'necesidades'): ?>
                                             <a href="?route=necesidades&action=<?= $actions['edit_action'] ?>&id=<?= $row['id'] ?>" class="btn btn-sm btn-warning" title="Gestionar Solicitud"><i class="bi bi-pencil-fill"></i></a>

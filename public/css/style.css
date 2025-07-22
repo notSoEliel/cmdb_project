@@ -116,3 +116,39 @@ body {
   box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
   z-index: 110;
 }
+
+/* ===== Tabla dinámica ===== */
+
+/* Hace sticky las celdas que marquemos con .sticky-col */
+.table-responsive table th.sticky-col,
+.table-responsive table td.sticky-col {
+  position: sticky;
+  background: #fff;
+  z-index: 2;
+}
+
+/* Ajusta la primera columna (ID) */
+.table-responsive table th.first-col,
+.table-responsive table td.first-col {
+  left: 0;
+  z-index: 3; /* sobre el resto */
+}
+
+/* Ajusta la última columna (Acciones) */
+.table-responsive table th.last-col,
+.table-responsive table td.last-col {
+  right: 0;
+  z-index: 3;
+}
+
+.table-responsive table th a {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+/* 2) Separación entre texto e icono */
+.table-responsive table th a i.bi {
+  margin-left: 0.25rem;
+  font-size: 0.9em;           /* opcional: para iconos más pequeñitos */
+}
