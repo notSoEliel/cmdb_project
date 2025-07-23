@@ -43,6 +43,7 @@ use App\Controllers\PublicController;
 $validRoutes = [
     'login'         => AuthController::class,
     'logout'        => AuthController::class,
+    'forgot-password' => AuthController::class,
     'admin_profile' => AdminProfileController::class,
     'portal'        => PortalController::class,
     'necesidades'   => NecesidadController::class,
