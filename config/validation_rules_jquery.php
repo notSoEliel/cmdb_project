@@ -11,7 +11,7 @@ return [
             'ubicacion' => ['required' => true],
             'telefono' => ['required' => true, 'phonePA' => true],
             // La regla 'required' para 'password' se maneja dinámicamente en app.js
-            'password' => ['minlength' => 8], 
+            'password' => ['minlength' => 8],
             'departamento' => ['required' => true],
             'ip_asignada' => ['ipv4' => true],
             'foto_perfil' => [
@@ -35,7 +35,7 @@ return [
     ],
 
     // Reglas para el formulario de Inventario (EQUIPO INDIVIDUAL)
-    'form-inventario' => [ 
+    'form-inventario' => [
         'rules' => [
             'nombre_equipo' => ['required' => true, 'maxlength' => 150],
             'categoria_id' => ['required' => true],
@@ -86,7 +86,7 @@ return [
     ],
 
     // Reglas para el formulario de Inventario (EQUIPOS POR LOTE)
-    'form-inventario-lote' => [ 
+    'form-inventario-lote' => [
         'rules' => [
             'cantidad' => ['required' => true, 'digits' => true, 'min' => 1],
             'prefijo_serie' => [
@@ -202,6 +202,22 @@ return [
                 'required' => true,
                 'equalTo' => '#new_password'
             ]
+        ],
+        'messages' => [
+            'new_password' => ['minlength' => 'La contraseña debe tener al menos 8 caracteres.'],
+            'confirm_password' => ['equalTo' => 'Las contraseñas no coinciden.']
+        ]
+    ],
+
+    // Reglas para el formulario de restablecimiento de contraseña
+    'form-forgot-password' => [
+        'rules' => ['email' => ['required' => true, 'email' => true]],
+        'messages' => ['email' => ['required' => 'El correo es obligatorio.', 'email' => 'Introduce un correo válido.']]
+    ],
+    'form-reset-password' => [
+        'rules' => [
+            'new_password' => ['required' => true, 'minlength' => 8],
+            'confirm_password' => ['required' => true, 'equalTo' => '#new_password']
         ],
         'messages' => [
             'new_password' => ['minlength' => 'La contraseña debe tener al menos 8 caracteres.'],

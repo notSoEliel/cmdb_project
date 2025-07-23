@@ -5,6 +5,7 @@ namespace App\Core;
 use App\Models\Usuario;
 use App\Models\Colaborador;
 use App\Models\HistorialLogin;
+use App\Models\PasswordReset;
 
 class AuthService
 {
@@ -82,5 +83,26 @@ class AuthService
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_nombre'] = $user['nombre'];
         $_SESSION['user_role'] = $role;
+    }
+
+    /**
+     * Genera un token de reseteo seguro, lo guarda en la BD y lo devuelve.
+     * @param string $email
+     * @return string El token generado.
+     */
+    public function generateResetToken(string $email): string
+    {
+        $passwordResetModel = new PasswordReset();
+
+        // 1. Genera un token aleatorio y seguro
+        $token = bin2hex(random_bytes(32));
+
+        // 2. Define una fecha de expiración (ej: 1 hora a partir de ahora)
+        $expiresAt = (new \DateTime())->modify('+1 hour')->format('Y-m-d H:i:s');
+
+        // 3. Guarda el token en la base de datos
+        $passwordResetModel->saveToken($email, $token, $expiresAt);
+
+        return $token;
     }
 }

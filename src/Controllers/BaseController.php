@@ -23,7 +23,7 @@ abstract class BaseController
         $action = $_GET['action'] ?? 'index';
 
         // 1. Definimos las rutas que son 100% públicas y no requieren login.
-        $publicRoutes = ['login', 'logout', 'forgot-password'];
+        $publicRoutes = ['login', 'logout', 'forgot-password', 'public', 'reset-password'];
         if (in_array($route, $publicRoutes)) {
             return; // Si la ruta es pública, la ejecución continúa sin más comprobaciones.
         }
@@ -94,15 +94,26 @@ abstract class BaseController
     }
 
     /**
-     * Renderiza una vista.
+     * Renderiza una vista. Es capaz de generar scripts de validación
+     * si se le pasa 'formId' (string) o 'formIds' (array).
      */
     protected function render(string $view, array $data = [], bool $useLayout = true)
     {
-        if (isset($data['formIds']) && is_array($data['formIds'])) {
-            $validationService = new ValidationService();
-            $data['validationScript'] = $validationService->generateJQueryValidateScript($data['formIds']);
+        $idsParaValidar = [];
+        if (isset($data['formId'])) {
+            $idsParaValidar[] = $data['formId'];
         }
+        if (isset($data['formIds'])) {
+            $idsParaValidar = array_merge($idsParaValidar, $data['formIds']);
+        }
+
+        if (!empty($idsParaValidar)) {
+            $validationService = new ValidationService();
+            $data['validationScript'] = $validationService->generateJQueryValidateScript($idsParaValidar);
+        }
+
         extract($data);
+
         if ($useLayout) {
             ob_start();
             require_once "../src/{$view}";

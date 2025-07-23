@@ -23,18 +23,27 @@ class ValidationService
      * con todas las reglas y mensajes de validación cargados.
      * Esta variable será usada por 'app.js' para inicializar jQuery Validate.
      *
+     * @param array $formIds Los IDs de los formularios que necesitan validación.
      * @return string El bloque <script> que define la variable global.
      */
-    public function generateJQueryValidateScript(): string
+    public function generateJQueryValidateScript(array $formIds): string
     {
-        // Codifica todo el array de configuración de reglas como un objeto JSON JavaScript.
-        $rulesJson = json_encode($this->config);
+        // 1. Filtramos el gran array de reglas para quedarnos solo con las que necesitamos.
+        $rulesForPage = array_filter(
+            $this->config,
+            fn($key) => in_array($key, $formIds),
+            ARRAY_FILTER_USE_KEY
+        );
 
-        // Envuelve el JSON en una etiqueta <script> y define la variable global.
-        $script = "<script>\n";
-        $script .= "    var validationRules = $rulesJson;\n"; // Define la variable global
-        $script .= "</script>";
+        // Si no hay reglas para los formularios de esta página, no hacemos nada.
+        if (empty($rulesForPage)) {
+            return '';
+        }
+        // 2. Convertimos a JSON solo el subconjunto de reglas necesarias.
+        $rulesJson = json_encode($rulesForPage);
 
-        return $script;
+        // 3. Generamos el script final.
+        // La responsabilidad de inicializar .validate() se mueve a app.js
+        return "<script>var validationRules = {$rulesJson};</script>";
     }
 }

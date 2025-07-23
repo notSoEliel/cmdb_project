@@ -141,4 +141,18 @@ class Colaborador extends BaseModel
     {
         return Database::getInstance()->query("SELECT * FROM {$this->tableName} WHERE email = :email", ['email' => $email])->find();
     }
+
+    /**
+     * Actualiza la contraseña de un colaborador por su email.
+     *
+     * @param string $email El email del colaborador.
+     * @param string $newPasswordHash La nueva contraseña ya hasheada.
+     * @return boolean
+     */
+    public function updatePasswordByEmail(string $email, string $newPasswordHash): bool
+    {
+        $sql = "UPDATE {$this->tableName} SET password_hash = :password_hash WHERE email = :email";
+        Database::getInstance()->query($sql, ['password_hash' => $newPasswordHash, 'email' => $email]);
+        return true;
+    }
 }

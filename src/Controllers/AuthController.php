@@ -2,7 +2,10 @@
 
 namespace App\Controllers;
 
+
 use App\Core\AuthService;
+use App\Models\Colaborador;
+use App\Models\PasswordReset;
 
 class AuthController extends BaseController
 {
@@ -70,33 +73,86 @@ class AuthController extends BaseController
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = $_POST['email'] ?? '';
-            $isSimulation = isset($_POST['simulate_email']);
-
-            $colaborador = (new \App\Models\Colaborador())->findByEmail($email);
+            $colaborador = (new Colaborador())->findByEmail($email);
 
             if (!$colaborador) {
-                $_SESSION['mensaje_sa2'] = ['title' => 'Error', 'text' => 'No se encontró ningún colaborador con ese correo.', 'icon' => 'error'];
-                header('Location: ' . BASE_URL . 'index.php?route=forgot-password');
+                $_SESSION['mensaje_sa2'] = ['title' => 'Error', 'text' => 'No se encontró un colaborador con ese correo.', 'icon' => 'error'];
+            } else {
+                $token = (new AuthService())->generateResetToken($email);
+
+                // Se añade la acción correcta a la URL del enlace.
+                $resetLink = BASE_URL . 'index.php?route=reset-password&action=showResetPasswordForm&token=' . $token;
+
+                $_SESSION['mensaje_sa2'] = [
+                    'title' => '¡Simulación Exitosa!',
+                    'html' => 'Copia y pega este enlace en tu navegador:<br><br><input type="text" class="form-control" value="' . $resetLink . '" readonly>',
+                    'icon' => 'info'
+                ];
+            }
+            header('Location: ' . BASE_URL . 'index.php?route=forgot-password&action=showForgotPasswordForm');
+            exit;
+        }
+    }
+
+    /**
+     * Muestra el formulario final para restablecer la contraseña si el token es válido.
+     */
+    public function showResetPasswordForm()
+    {
+        $token = $_GET['token'] ?? '';
+        $resetRecord = (new PasswordReset())->findByToken($token);
+
+        if (!$resetRecord || new \DateTime() > new \DateTime($resetRecord['expires_at'])) {
+            http_response_code(403);
+            require_once '../src/Views/error-403.php';
+            exit;
+        }
+
+        $this->render('Views/auth/reset_password.php', [
+            'pageTitle' => 'Restablecer Contraseña',
+            'token' => $token,
+            'formId' => 'form-reset-password'
+        ], false);
+    }
+
+    /**
+     * Muestra el mensaje de éxito después de restablecer la contraseña.
+     */
+    public function showResetSuccess()
+    {
+        $this->render('Views/auth/reset_success.php', ['pageTitle' => 'Éxito'], false);
+    }
+
+    /**
+     * Procesa el formulario final y actualiza la contraseña.
+     */
+    public function resetPassword()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $token = $_POST['token'] ?? '';
+            $newPassword = $_POST['new_password'] ?? '';
+            $confirmPassword = $_POST['confirm_password'] ?? '';
+
+            if ($newPassword !== $confirmPassword || empty($newPassword)) {
+                $_SESSION['mensaje_sa2'] = ['title' => 'Error', 'text' => 'Las contraseñas no coinciden o están vacías.', 'icon' => 'error'];
+                header('Location: ' . BASE_URL . 'index.php?route=reset-password&token=' . $token);
                 exit;
             }
 
-            // Lógica para generar y guardar el token (la crearemos en el siguiente paso)
-            // $token = $this->authService->generateResetToken($email);
-            $token = "SIMULATED_TOKEN_12345"; // Marcador de posición por ahora
+            $resetRecord = (new PasswordReset())->findByToken($token);
 
-            if ($isSimulation) {
-                $resetLink = BASE_URL . 'index.php?route=reset-password&token=' . $token;
-                $_SESSION['mensaje_sa2'] = [
-                    'title' => '¡Simulación Exitosa!',
-                    'html' => 'En un sistema real, se enviaría este enlace a tu correo:<br><br><a href="' . $resetLink . '">' . $resetLink . '</a>',
-                    'icon' => 'info'
-                ];
-            } else {
-                // Aquí iría la lógica para enviar el correo real con PHPMailer
-                $_SESSION['mensaje_sa2'] = ['title' => '¡Solicitud Recibida!', 'text' => 'Si el correo existe, recibirás un enlace en breve.', 'icon' => 'success'];
+            if (!$resetRecord || new \DateTime() > new \DateTime($resetRecord['expires_at'])) {
+                $_SESSION['mensaje_sa2'] = ['title' => 'Error', 'text' => 'El enlace ha expirado o no es válido.', 'icon' => 'error'];
+                header('Location: ' . BASE_URL . 'index.php?route=login');
+                exit;
             }
 
-            header('Location: ' . BASE_URL . 'index.php?route=forgot-password');
+            $newPasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+            (new Colaborador())->updatePasswordByEmail($resetRecord['email'], $newPasswordHash);
+            (new PasswordReset())->deleteToken($token);
+
+            $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Tu contraseña ha sido restablecida.', 'icon' => 'success'];
+             header('Location: ' . BASE_URL . 'index.php?route=reset-password&action=showResetSuccess');
             exit;
         }
     }
