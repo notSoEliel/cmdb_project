@@ -43,9 +43,13 @@ class PortalController extends BaseController
         $colaboradorId = $_SESSION['user_id'] ?? 0;
 
         // Opciones para filtrar el inventario por el ID del colaborador
+        // Se define un filtro para obtener equipos que estén 'Asignado' O 'En Reparación'.
         $options = [
-            'paginate' => false, // No necesitamos paginación aquí
-            'filters' => ['a.colaborador_id' => $colaboradorId]
+            'paginate' => false,
+            'filters' => [
+                'a.colaborador_id' => $colaboradorId,
+                'i.estado' => ['IN', 'Asignado', 'En Reparación', 'Dañado']
+            ]
         ];
 
         // Obtenemos los equipos usando el método que ya existe
@@ -56,6 +60,42 @@ class PortalController extends BaseController
             'pageTitle' => 'Mis Equipos Asignados',
             'equipos' => $equipos
         ]);
+    }
+
+    /**
+     * Permite a un colaborador reportar un equipo como 'Dañado'.
+     */
+    public function reportarDano()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $inventario_id = (int)($_POST['inventario_id'] ?? 0);
+            $colaborador_id = $_SESSION['user_id'] ?? 0;
+
+            $inventarioModel = new Inventario();
+            $asignacionModel = new Asignacion();
+
+            // Medida de seguridad CRUCIAL: verificar que el equipo realmente pertenece al colaborador.
+            if ($asignacionModel->isEquipoAssignedToColaborador($inventario_id, $colaborador_id)) {
+
+                // 1. Obtenemos todos los datos actuales del equipo.
+                $equipo = $inventarioModel->findById($inventario_id);
+
+                if ($equipo) {
+                    // 2. Cambiamos únicamente el estado.
+                    $equipo['estado'] = 'Dañado';
+
+                    // 3. Guardamos el objeto completo. El método save() se encargará del resto.
+                    //    Es importante pasar todos los datos para que no se pierdan.
+                    $inventarioModel->save($equipo);
+                    $_SESSION['mensaje_sa2'] = ['title' => '¡Reportado!', 'text' => 'Se ha notificado el daño del equipo.', 'icon' => 'success'];
+                } else {
+                    $_SESSION['mensaje_sa2'] = ['title' => 'Error', 'text' => 'No se encontró el equipo a reportar.', 'icon' => 'error'];
+                }
+
+                header('Location: ' . BASE_URL . 'index.php?route=portal&action=misEquipos');
+                exit;
+            }
+        }
     }
 
     /**

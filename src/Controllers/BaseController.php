@@ -65,7 +65,7 @@ abstract class BaseController
                 'necesidades' => ['adminIndex', 'showUpdateForm', 'updateStatus'],
             ],
             'colaborador' => [
-                'portal' => ['index', 'misEquipos', 'showProfile', 'updateLocation', 'updatePassword', 'showEquipoImages'],
+                'portal' => ['index', 'misEquipos', 'showProfile', 'updateLocation', 'updatePassword', 'showEquipoImages', 'reportarDano'],
                 'necesidades' => ['misSolicitudes', 'showForm', 'store'],
             ]
         ];
