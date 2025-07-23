@@ -16,6 +16,7 @@ $data = $tableConfig['data'];          // Los registros de la página actual.
 $pagination = $tableConfig['pagination'];  // Contiene toda la info de paginación.
 $actions = $tableConfig['actions'];      // Define las rutas para los botones de acción.
 $currentRoute = $_GET['route'] ?? '';
+$currentAction = $_GET['action'] ?? '';
 
 // Preparamos TODOS los parámetros de la URL actual para que no se pierdan
 // al hacer clic en los enlaces de paginación o de ordenamiento.
@@ -139,6 +140,12 @@ if (!empty($pagination['filters'])) {
                                             } elseif ($diferencia->y == 0 && $diferencia->m < 6) {
                                                 echo ' <span class="badge bg-warning text-dark">Próximo a Expirar</span>';
                                             }
+                                        } elseif ($column['field'] === 'notas_donacion') {
+                                            if (strlen($cellValue) > 30) {
+                                                echo htmlspecialchars(substr($cellValue, 0, 30)) . '...';
+                                            } else {
+                                                echo htmlspecialchars($cellValue);
+                                            }
                                         } else {
                                             // Si es una celda normal, solo muestra el texto
                                             echo htmlspecialchars($cellValue);
@@ -148,6 +155,12 @@ if (!empty($pagination['filters'])) {
                                 <?php endforeach; ?>
 
                                 <td class="text-end text-nowrap sticky-col last-col">
+                                    <?php if ($currentAction === 'showDonados'): ?>
+                                        <form action="?route=inventario&action=revertirDonacion" method="POST" class="d-inline">
+                                            <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-info" title="Revertir y devolver a Stock"><i class="bi bi-arrow-counterclockwise"></i></button>
+                                        </form>
+                                    <?php endif; ?>
                                     <?php if ($currentRoute === 'inventario') : ?>
                                         <a href="?route=inventario&action=showQrCode&id=<?= $row['id'] ?>" class="btn btn-sm btn-dark" title="Generar QR" target="_blank">
                                             <i class="bi bi-qr-code"></i>

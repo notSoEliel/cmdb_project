@@ -55,7 +55,8 @@ abstract class BaseController
                     'showAddForm',
                     'batchStore',
                     'checkSerialUniqueness',
-                    'showQrCode'
+                    'showQrCode',
+                    'showDonados',
                 ],
                 'colaboradores' => ['index', 'store', 'update'],
                 'categorias' => ['index', 'store', 'update', 'destroy'],

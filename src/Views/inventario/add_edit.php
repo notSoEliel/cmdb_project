@@ -206,11 +206,6 @@ $showBatchFormOnly = isset($_GET['form_action']) && $_GET['form_action'] === 'ba
                         <label class="form-label" for="tiempo_depreciacion_anios_lote">Depreciación (Años)</label>
                         <input id="tiempo_depreciacion_anios_lote" type="number" min="0" class="form-control" name="tiempo_depreciacion_anios" value="0" required>
                     </div>
-                    <div class="col-md-8 form-group">
-                        <label class="form-label" for="notas_donacion_lote">Notas de Donación / Descarte (Opcional)</label>
-                        <textarea class="form-control" id="notas_donacion_lote" name="notas_donacion" rows="2"></textarea>
-                        <small class="form-text text-muted">Estas notas solo se aplicarán si el estado inicial del lote es 'Donado' o 'En Descarte'.</small>
-                    </div>
                 </div>
                 <div class="mt-3">
                     <button class="btn btn-info" type="submit">Añadir Equipos por Lote</button>

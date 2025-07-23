@@ -114,8 +114,10 @@ abstract class BaseModel
             foreach ($options['filters'] as $column => $value) {
                 $safeColumnName = str_replace('.', '_', $column);
                 $finalColumn = (strpos($column, '.') !== false) ? $column : "{$prefix}.{$column}";
+
+                // Lógica simplificada: si el valor es un array, es IN o NOT IN.
                 if (is_array($value)) {
-                    $operator = array_shift($value);
+                    $operator = array_shift($value); // Toma el 'NOT IN'
                     $placeholders = [];
                     foreach ($value as $idx => $v) {
                         $placeholder = ":filter_{$safeColumnName}_{$idx}";
@@ -123,10 +125,12 @@ abstract class BaseModel
                         $params[$placeholder] = $v;
                     }
                     if (!empty($placeholders)) {
-                        $whereConditions[] = "{$finalColumn} {$operator} (" . implode(',', $placeholders) . ")";
+                         $whereConditions[] = "{$finalColumn} {$operator} (" . implode(',', $placeholders) . ")";
                     }
                 } else {
+                    // Se crea un nombre de placeholder limpio.
                     $placeholder = ":filter_" . $safeColumnName;
+                    // Se asegura de que solo haya un ':' en la consulta final.
                     $whereConditions[] = "{$finalColumn} = {$placeholder}";
                     $params[$placeholder] = $value;
                 }

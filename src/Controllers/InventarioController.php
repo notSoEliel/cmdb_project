@@ -40,14 +40,17 @@ class InventarioController extends BaseController
 
         // Se inicializa el array de filtros.
         $filters = [];
-        // Se añade un filtro si se ha seleccionado una categoría.
+        // Filtro permanente para excluir equipos no activos
+        // Le pasamos el filtro como un array: ['OPERADOR', 'valor1', 'valor2', ...]
+        $filters['i.estado'] = ['NOT IN', 'Donado', 'En Descarte'];
+        // Se añade el filtro de categoría si se aplica desde la URL.
         if (!empty($_GET['categoria_id'])) {
             $filters['i.categoria_id'] = $_GET['categoria_id'];
         }
-        // Se añade un filtro si se ha seleccionado un colaborador.
+        // Se añade el filtro de colaborador si se aplica desde la URL.
         if (!empty($_GET['colaborador_id'])) {
             $filters['a.colaborador_id'] = $_GET['colaborador_id'];
-            $filters['i.estado'] = ['NOT IN', 'En Descarte', 'Donado'];
+            // $filters['i.estado'] = ['NOT IN', 'En Descarte', 'Donado'];
         }
 
         // --- 2. Preparación de Modelos y Opciones ---
@@ -629,8 +632,10 @@ class InventarioController extends BaseController
     {
         // 1. Obtener TODOS los datos, sin paginación
         $inventarioModel = new Inventario();
-        $options = $_GET; // Usamos los filtros y búsqueda actuales de la URL
+        $options = $_GET;
         $options['paginate'] = false; // Le decimos al modelo que no pagine
+        // Filtro permanente para excluir equipos no activos del reporte
+        $options['filters']['i.estado'] = ['NOT IN', 'Donado', 'En Descarte'];
         $inventarios = $inventarioModel->findAll($options);
 
         // 2. Crear el objeto Spreadsheet
@@ -678,8 +683,8 @@ class InventarioController extends BaseController
      * Genera y muestra una imagen de código QR para un equipo.
      */
 
-   
-   public function showQrCode()
+
+    public function showQrCode()
     {
         $id = (int)($_GET['id'] ?? 0);
         $publicUrl = BASE_URL . 'index.php?route=public&action=showEquipo&id=' . $id;
@@ -694,8 +699,86 @@ class InventarioController extends BaseController
 
         $result = $builder->build();
 
-        header('Content-Type: '.$result->getMimeType());
+        header('Content-Type: ' . $result->getMimeType());
         echo $result->getString();
         exit;
+    }
+
+    /**
+     * Muestra una vista filtrada únicamente con los equipos donados.
+     */
+    public function showDonados()
+    {
+        // 1. Recopila parámetros de la URL para búsqueda, orden, etc.
+        $options = $_GET;
+        $page = (int)($_GET['page'] ?? 1);
+        $perPage = (int)($_GET['perPage'] ?? 10);
+
+        // 2. FUERZA el filtro para que solo muestre equipos con estado 'Donado'.
+        $options['filters']['i.estado'] = 'Donado';
+
+        // 3. Obtiene los datos usando la lógica del modelo que ya existe.
+        $inventarioModel = new Inventario();
+        $data = $inventarioModel->findAll($options);
+        $totalRecords = $inventarioModel->countFiltered($options);
+        $totalPages = ceil($totalRecords / $perPage);
+
+        // 4. Prepara la configuración para la tabla reutilizable.
+        $tableConfig = [
+            'columns' => [
+                ['header' => 'ID', 'field' => 'id', 'sort_by' => 'i.id'],
+                ['header' => 'Equipo', 'field' => 'nombre_equipo', 'sort_by' => 'i.nombre_equipo'],
+                ['header' => 'Categoría', 'field' => 'nombre_categoria', 'sort_by' => 'nombre_categoria'],
+                ['header' => 'Notas de Donación', 'field' => 'notas_donacion'],
+                ['header' => 'Fecha Ingreso', 'field' => 'fecha_ingreso', 'sort_by' => 'i.fecha_ingreso'],
+            ],
+            'data' => $data,
+            'pagination' => [
+                'currentPage' => $page,
+                'perPage' => $perPage,
+                'totalPages' => $totalPages,
+                'totalRecords' => $totalRecords,
+                'search' => $_GET['search'] ?? '',
+                'sort' => $_GET['sort'] ?? 'id',
+                'order' => $_GET['order'] ?? 'desc',
+                'filters' => $options['filters']
+            ],
+            'actions' => [] // No hay acciones para los equipos donados
+        ];
+
+        // 5. Renderiza la nueva vista.
+        $this->render('Views/inventario/donados.php', [
+            'pageTitle' => 'Inventario de Equipos Donados',
+            'tableConfig' => $tableConfig
+        ]);
+    }
+
+    /**
+     * Revierte el estado de un equipo de 'Donado' a 'En Stock'.
+     */
+    public function revertirDonacion()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = (int)$_POST['id'];
+            $inventarioModel = new Inventario();
+
+            // 1. Busca los datos actuales del equipo
+            $equipo = $inventarioModel->findById($id);
+
+            if ($equipo) {
+                // 2. Modifica solo los campos necesarios
+                $equipo['estado'] = 'En Stock';
+                $equipo['notas_donacion'] = null; // Limpia las notas
+
+                // 3. Llama al método save() con los datos actualizados
+                $inventarioModel->save($equipo);
+                $_SESSION['mensaje_sa2'] = ['title' => '¡Revertido!', 'text' => 'El equipo ha vuelto al inventario.', 'icon' => 'success'];
+            } else {
+                $_SESSION['mensaje_sa2'] = ['title' => 'Error', 'text' => 'No se encontró el equipo.', 'icon' => 'error'];
+            }
+
+            header('Location: ' . BASE_URL . 'index.php?route=inventario&action=showDonados');
+            exit;
+        }
     }
 }

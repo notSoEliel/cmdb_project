@@ -18,8 +18,13 @@ $current_route = $_GET['route'] ?? 'home';
                 </a>
             </li>
             <li>
-                <a href="<?= BASE_URL ?>index.php?route=inventario" class="nav-link text-white <?= $current_route === 'inventario' ? 'active' : '' ?>">
+                <a href="<?= BASE_URL ?>index.php?route=inventario" class="nav-link text-white <?= ($current_route === 'inventario' && ($_GET['action'] ?? 'index') === 'index') ? 'active' : '' ?>">
                     <i class="bi bi-hdd-stack me-2"></i> Inventario
+                </a>
+            </li>
+            <li>
+                <a href="<?= BASE_URL ?>index.php?route=inventario&action=showDonados" class="nav-link text-white <?= ($_GET['action'] ?? '') === 'showDonados' ? 'active' : '' ?>">
+                    <i class="bi bi-gift-fill me-2"></i> Donados
                 </a>
             </li>
             <li>
