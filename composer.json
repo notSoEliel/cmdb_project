@@ -11,6 +11,7 @@
         "email": "eliel.garcia1@utp.ac.pa"
     }],
     "require": {
-        "phpoffice/phpspreadsheet": "^4.4"
+        "phpoffice/phpspreadsheet": "^4.4",
+        "endroid/qr-code": "^6.0"
     }
 }

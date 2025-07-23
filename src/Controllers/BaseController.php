@@ -7,102 +7,108 @@ use App\Core\ValidationService;
 
 /**
  * Controlador Base
- * Contiene la lógica compartida, como renderizar vistas y proteger rutas.
+ * Contiene la lógica compartida, como renderizar vistas y, más importante,
+ * proteger todas las rutas de la aplicación.
  */
 abstract class BaseController
 {
+    /**
+     * El constructor actúa como un "guardián" de seguridad para cada página.
+     * Se ejecuta antes que cualquier método de los controladores hijos.
+     */
     public function __construct()
     {
-        // --- INICIO DEL GUARDIÁN DE RUTAS ---
         $authService = new AuthService();
         $route = $_GET['route'] ?? 'home';
+        $action = $_GET['action'] ?? 'index';
 
-        // Definimos las rutas que no necesitan login
+        // 1. Definimos las rutas que son 100% públicas y no requieren login.
         $publicRoutes = ['login', 'logout'];
         if (in_array($route, $publicRoutes)) {
-            return; // Si la ruta es pública, no se hace ninguna comprobación.
+            return; // Si la ruta es pública, la ejecución continúa sin más comprobaciones.
         }
 
-        // Definimos qué rutas requieren qué rol.
-        $protectedRoutes = [
-            // Rutas exclusivas para 'admin'
-            'home'          => ['role' => 'admin'],
-            'inventario'    => ['role' => 'admin'],
-            'colaboradores' => ['role' => 'admin'],
-            'categorias'    => ['role' => 'admin'],
-            'usuarios'      => ['role' => 'admin'],
-            'admin_profile' => ['role' => 'admin'],
+        // 2. Si la ruta no es pública, es obligatorio que el usuario haya iniciado sesión.
+        if (!$authService->isLoggedIn()) {
+            // Si no ha iniciado sesión, se le redirige al login.
+            header('Location: ' . BASE_URL . 'index.php?route=login');
+            exit;
+        }
 
-            // Rutas exclusivas para 'colaborador'
-            'portal'        => ['role' => 'colaborador'],
-
-            // Ruta con acciones para roles mixtos
-            'necesidades'   => [
-                'actions' => [
-                    'adminIndex'      => 'admin',
-                    'showUpdateForm'  => 'admin',
-                    'updateStatus'    => 'admin',
-                    'misSolicitudes'  => 'colaborador',
-                    'showForm'        => 'colaborador',
-                    'store'           => 'colaborador',
-                ]
+        // 3. Definimos un mapa completo de qué roles pueden acceder a qué rutas y acciones.
+        $permissions = [
+            'admin' => [
+                'home' => ['index'],
+                'inventario' => [
+                    'index',
+                    'store',
+                    'update',
+                    'destroy',
+                    'showAssignForm',
+                    'assign',
+                    'unassign',
+                    'showImages',
+                    'uploadImage',
+                    'destroyImage',
+                    'setThumbnail',
+                    'exportToExcel',
+                    'showAddForm',
+                    'batchStore',
+                    'checkSerialUniqueness',
+                    'showQrCode'
+                ],
+                'colaboradores' => ['index', 'store', 'update'],
+                'categorias' => ['index', 'store', 'update', 'destroy'],
+                'usuarios' => ['index', 'store', 'update'],
+                'admin_profile' => ['index', 'updatePassword'],
+                'necesidades' => ['adminIndex', 'showUpdateForm', 'updateStatus'],
+            ],
+            'colaborador' => [
+                'portal' => ['index', 'misEquipos', 'showProfile', 'updateLocation', 'updatePassword', 'showEquipoImages'],
+                'necesidades' => ['misSolicitudes', 'showForm', 'store'],
             ]
         ];
 
-        // 1. Revisa si la ruta actual está protegida para algún rol.
-        $requiredRole = null;
-        foreach ($protectedRoutes as $role => $routes) {
-            if (in_array($route, $routes)) {
-                $requiredRole = $role;
-                break;
+        // 4. Verificamos si el rol del usuario actual tiene permiso para la ruta y acción solicitadas.
+        $userRole = $authService->getRole();
+        $hasPermission = false;
+
+        if (isset($permissions[$userRole])) {
+            // Revisa si el rol tiene permiso para toda la ruta (todas las acciones)
+            if (isset($permissions[$userRole][$route]) && !is_array($permissions[$userRole][$route])) {
+                // Esta lógica es por si en el futuro queremos dar acceso a un controlador entero
+                // (no la usamos ahora, pero es bueno tenerla)
+            }
+            // O revisa si tiene permiso para la acción específica
+            elseif (isset($permissions[$userRole][$route]) && in_array($action, $permissions[$userRole][$route])) {
+                $hasPermission = true;
             }
         }
 
-        // 2. Si la ruta requiere un rol...
-        if ($requiredRole) {
-            // ...primero, verifica si el usuario ha iniciado sesión.
-            if (!$authService->isLoggedIn()) {
-                header('Location: ' . BASE_URL . 'index.php?route=login');
-                exit;
-            }
-
-            // ...segundo, verifica si el rol del usuario es el correcto.
-            if ($authService->getRole() !== $requiredRole) {
-                http_response_code(403);
-                require_once '../src/Views/error-403.php';
-                exit;
-            }
+        // 5. Si no tiene permiso, se muestra la página de error 403.
+        if (!$hasPermission) {
+            http_response_code(403); // 403 Forbidden
+            require_once '../src/Views/error-403.php';
+            exit;
         }
-        // --- FIN DEL GUARDIÁN DE RUTAS ---
     }
 
     /**
-     * Renderiza una vista. Por defecto, la envuelve en el layout principal.
-     * @param string $view La ruta a la vista.
-     * @param array $data Los datos para la vista.
-     * @param bool $useLayout Si es false, renderiza la vista sin el layout.
+     * Renderiza una vista.
      */
     protected function render(string $view, array $data = [], bool $useLayout = true)
     {
-        // Si el controlador le pasa un array de 'formIds'...
         if (isset($data['formIds']) && is_array($data['formIds'])) {
             $validationService = new ValidationService();
-            // ...le pide al ValidationService que genere los scripts.
             $data['validationScript'] = $validationService->generateJQueryValidateScript($data['formIds']);
         }
-
         extract($data);
-
-
         if ($useLayout) {
-            // Si se usa el layout, captura el contenido de la vista en una variable
             ob_start();
             require_once "../src/{$view}";
             $content = ob_get_clean();
-            // y luego carga el layout, que usará la variable $content.
             require_once '../src/Views/layout.php';
         } else {
-            // Si no se usa el layout, simplemente carga el archivo de la vista directamente.
             require_once "../src/{$view}";
         }
     }

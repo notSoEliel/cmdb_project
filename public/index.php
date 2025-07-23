@@ -1,4 +1,9 @@
 <?php
+// --- CÓDIGO DE DEPURACIÓN TEMPORAL ---
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+// --- FIN DEL CÓDIGO DE DEPURACIÓN ---
 
 // =================================================================
 // 1. INICIALIZACIÓN Y MANEJO DE ERRORES
@@ -32,6 +37,7 @@ use App\Controllers\NecesidadController;
 use App\Controllers\PortalController;
 use App\Controllers\UsuarioController;
 use App\Controllers\AdminProfileController;
+use App\Controllers\PublicController;
 
 // Mapa de rutas válidas de la aplicación
 $validRoutes = [
@@ -43,6 +49,7 @@ $validRoutes = [
     'usuarios'      => UsuarioController::class,
     'home'          => DashboardController::class,
     'inventario'    => InventarioController::class,
+    'public'        => PublicController::class,
     'colaboradores' => ColaboradorController::class,
     'categorias'    => CategoriaController::class,
 ];

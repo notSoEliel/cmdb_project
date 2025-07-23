@@ -149,6 +149,9 @@ if (!empty($pagination['filters'])) {
 
                                 <td class="text-end text-nowrap sticky-col last-col">
                                     <?php if ($currentRoute === 'inventario') : ?>
+                                        <a href="?route=inventario&action=showQrCode&id=<?= $row['id'] ?>" class="btn btn-sm btn-dark" title="Generar QR" target="_blank">
+                                            <i class="bi bi-qr-code"></i>
+                                        </a>
                                         <?php if (!empty($row['notas_donacion'])): /* Botón de Notas */ ?>
                                             <button type="button" class="btn btn-sm btn-dark" title="Ver Notas" data-bs-toggle="modal" data-bs-target="#notesModal" data-notes="<?= htmlspecialchars($row['notas_donacion']) ?>"><i class="bi bi-card-text"></i></button>
                                         <?php endif; ?>

@@ -11,6 +11,8 @@ use App\Models\InventarioImagen;
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\Writer\PngWriter;
 
 /**
  * Class InventarioController
@@ -305,7 +307,7 @@ class InventarioController extends BaseController
                 if (empty($data['fecha_ingreso'])) {
                     throw new \Exception('La fecha de ingreso es obligatoria.');
                 }
-                 if (!is_numeric($data['tiempo_depreciacion_anios']) || (int)$data['tiempo_depreciacion_anios'] < 0) {
+                if (!is_numeric($data['tiempo_depreciacion_anios']) || (int)$data['tiempo_depreciacion_anios'] < 0) {
                     throw new \Exception('La depreciación en años debe ser un número entero no negativo.');
                 }
                 if (empty($data['estado'])) {
@@ -443,7 +445,6 @@ class InventarioController extends BaseController
                 } else {
                     $_SESSION['mensaje_sa2'] = ['title' => '¡Error!', 'text' => 'No se pudo añadir ningún equipo por lote. Todas las series generadas ya existen o hubo otros problemas. Por favor, verifique el formulario.', 'icon' => 'error'];
                 }
-
             } catch (\Throwable $e) {
                 // Capturar cualquier otra excepción no manejada específicamente
                 $_SESSION['mensaje_sa2'] = ['title' => '¡Error!', 'text' => 'Hubo un problema al procesar el lote: ' . $e->getMessage(), 'icon' => 'error'];
@@ -670,6 +671,31 @@ class InventarioController extends BaseController
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="' . urlencode($fileName) . '"');
         $writer->save('php://output');
+        exit;
+    }
+
+    /**
+     * Genera y muestra una imagen de código QR para un equipo.
+     */
+
+   
+   public function showQrCode()
+    {
+        $id = (int)($_GET['id'] ?? 0);
+        $publicUrl = BASE_URL . 'index.php?route=public&action=showEquipo&id=' . $id;
+
+        // Construir el builder manualmente (no usar Builder::create())
+        $builder = new Builder(
+            writer: new PngWriter(),
+            data: $publicUrl,
+            size: 300,
+            margin: 10
+        );
+
+        $result = $builder->build();
+
+        header('Content-Type: '.$result->getMimeType());
+        echo $result->getString();
         exit;
     }
 }
