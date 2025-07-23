@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnChangeLocation = document.getElementById('btn-change-location');
     const btnCancelLocation = document.getElementById('btn-cancel-location');
 
-    // Se ejecuta solo si encuentra los elementos en la página actual.
     if (viewLocationDiv && editLocationDiv && btnChangeLocation && btnCancelLocation) {
         btnChangeLocation.addEventListener('click', function() {
             viewLocationDiv.style.display = 'none';
@@ -25,7 +24,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnChangePassword = document.getElementById('btn-change-password');
     const btnCancelPassword = document.getElementById('btn-cancel-password');
 
-    // Se ejecuta solo si encuentra los elementos en la página actual.
     if (viewPasswordDiv && editPasswordDiv && btnChangePassword && btnCancelPassword) {
         btnChangePassword.addEventListener('click', function() {
             viewPasswordDiv.style.display = 'none';
@@ -52,7 +50,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Se inicializa la funcionalidad para cada campo de contraseña que exista en la página.
     setupPasswordToggle('current_password', 'toggleCurrentPassword');
     setupPasswordToggle('new_password', 'toggleNewPassword');
     setupPasswordToggle('confirm_password', 'toggleConfirmPassword');
@@ -74,14 +71,185 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (btnGenerateIp && ipInput) {
         btnGenerateIp.addEventListener('click', function() {
-            // Genera 4 números aleatorios entre 1 y 254
             const octet1 = Math.floor(Math.random() * 254) + 1;
             const octet2 = Math.floor(Math.random() * 255);
             const octet3 = Math.floor(Math.random() * 255);
             const octet4 = Math.floor(Math.random() * 254) + 1;
-
-            // Une los números con puntos y los pone en el campo de texto
             ipInput.value = `${octet1}.${octet2}.${octet3}.${octet4}`;
         });
+    }
+
+    // --- Lógica para la sugerencia automática del número de serie en el formulario de lote ---
+    const prefijoSerieInput = document.getElementById('prefijo_serie');
+    const numeroInicioSerieInput = document.getElementById('numero_inicio_serie');
+    const suggestedSerialText = document.getElementById('current-suggested-serial');
+
+    if (prefijoSerieInput && numeroInicioSerieInput) {
+        const getSuggestedSerialNumber = async (prefix) => {
+            const url = `index.php?route=inventario&action=showAddForm&form_action=batch&prefijo_serie_sug=${encodeURIComponent(prefix)}`;
+            const response = await fetch(url);
+            const html = await response.text();
+
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+
+            const newSuggestedValue = tempDiv.querySelector('#numero_inicio_serie').value;
+            return newSuggestedValue;
+        };
+
+        prefijoSerieInput.addEventListener('input', async () => {
+            const prefix = prefijoSerieInput.value;
+            const newSuggestedNum = await getSuggestedSerialNumber(prefix);
+            numeroInicioSerieInput.value = newSuggestedNum;
+            if (suggestedSerialText) {
+                suggestedSerialText.textContent = `Sugerido: ${newSuggestedNum}`;
+            }
+        });
+    }
+
+    // --- Inicialización de SweetAlert2 si hay un mensaje en la sesión ---
+    const mensajeSa2 = JSON.parse(sessionStorage.getItem('mensaje_sa2'));
+    if (mensajeSa2) {
+        Swal.fire({
+            title: mensajeSa2.title,
+            text: mensajeSa2.text,
+            icon: mensajeSa2.icon,
+            confirmButtonText: 'Ok'
+        });
+        sessionStorage.removeItem('mensaje_sa2');
+    }
+
+    const phpMessage = JSON.parse(sessionStorage.getItem('php_message'));
+    if (phpMessage) {
+        Swal.fire({
+            title: phpMessage.title || 'Error',
+            text: phpMessage.text || 'Hubo un problema.',
+            icon: phpMessage.icon || 'error',
+            confirmButtonText: 'Ok'
+        });
+        sessionStorage.removeItem('php_message');
+    }
+
+    // --- Inicialización de jQuery Validate para los formularios ---
+    // Asegúrate de que jQuery y jQuery Validate estén cargados antes que este script.
+    // 'validationRules' es una variable global definida por ValidationService.php (se incluye antes)
+    if (typeof jQuery !== 'undefined' && typeof jQuery.validator !== 'undefined' && typeof validationRules !== 'undefined') {
+        // Añadir métodos de validación personalizados si no existen
+        if (!jQuery.validator.methods.phonePA) {
+            jQuery.validator.addMethod('phonePA', function(value, element) {
+                let cleanValue = value.replace(/-/g, '');
+                return this.optional(element) || /^(6\d{7}|[2-9]\d{6})$/.test(cleanValue);
+            }, 'Debe ser un número válido de Panamá.');
+        }
+        if (!jQuery.validator.methods.ipv4) {
+            jQuery.validator.addMethod('ipv4', function(value, element) {
+                return this.optional(element) || /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(value);
+            }, 'Por favor, introduce una dirección IP v4 válida.');
+        }
+        if (!jQuery.validator.methods.pattern) { // Si el método 'pattern' no está en el plugin
+            jQuery.validator.addMethod("pattern", function(value, element, param) {
+                if (this.optional(element)) {
+                    return true;
+                }
+                if (typeof param === 'string') {
+                    param = new RegExp('^(?:' + param + ')$');
+                }
+                return param.test(value);
+            }, "Formato inválido.");
+        }
+        if (!jQuery.validator.methods.dateISO) { // Asegurarse de que dateISO está disponible
+            jQuery.validator.addMethod("dateISO", function(value, element) {
+                return this.optional(element) || /^\d{4}[\/\-](0?[1-9]|1[012])[\/\-](0?[1-9]|[12][0-9]|3[01])$/.test(value);
+            }, jQuery.validator.messages.date);
+        }
+
+        for (const formId in validationRules) {
+            if (document.getElementById(formId)) { // Solo inicializar si el formulario existe en la página
+                jQuery('#' + formId).validate({
+                    rules: validationRules[formId].rules,
+                    messages: validationRules[formId].messages,
+                    errorElement: 'div',
+                    errorClass: 'text-danger form-text', // Añadir form-text para mejor estilo
+                    errorPlacement: function(error, element) {
+                        if (element.parent().hasClass('input-group')) {
+                            error.insertAfter(element.parent());
+                        } else if (element.hasClass('form-select')) { // Para selectores
+                            error.insertAfter(element.next('span.select2-container')); // Si usas select2
+                        } else {
+                            error.insertAfter(element);
+                        }
+                    },
+                    highlight: function(element) {
+                        jQuery(element).addClass('is-invalid').removeClass('is-valid');
+                    },
+                    unhighlight: function(element) {
+                        jQuery(element).removeClass('is-invalid').addClass('is-valid');
+                    },
+                    // Lógica para contraseñas condicionalmente requeridas (form-colaborador, form-usuario)
+                    // y notas de donación (form-inventario)
+                    // Esta lógica se maneja directamente aquí al configurar las reglas en .validate()
+                    // Si el formulario es de colaborador o usuario
+                    submitHandler: function(form) {
+                        // Guardar mensaje SweetAlert para después de la redirección
+                        sessionStorage.setItem('mensaje_sa2', JSON.stringify({
+                            title: 'Procesando...',
+                            text: 'Guardando datos, por favor espera.',
+                            icon: 'info'
+                        }));
+                        form.submit(); // Enviar el formulario
+                    }
+                });
+
+                // Lógica condicional para campos específicos que dependen del estado del formulario (edición vs. creación)
+                // Se aplica a form-colaborador y form-usuario para la contraseña
+                const isEditing = jQuery('#' + formId + ' input[name="id"]').val() !== undefined && jQuery('#' + formId + ' input[name="id"]').val() !== '';
+                if ((formId === 'form-colaborador' || formId === 'form-usuario') && !isEditing) {
+                    // Si estamos creando, la contraseña es obligatoria.
+                    jQuery('#' + formId + ' input[name="password"]').rules('add', {
+                        required: true,
+                        messages: {
+                            required: 'La contraseña es obligatoria al crear.'
+                        }
+                    });
+                } else if ((formId === 'form-colaborador' || formId === 'form-usuario') && isEditing) {
+                    // Si estamos editando, la contraseña no es obligatoria a menos que se haya rellenado.
+                    // Para que no valide si se deja vacío al editar, la regla 'required' debe ser eliminada
+                    // o no añadida si el campo está vacío.
+                    // Aquí simplemente la regla 'minlength' será suficiente si no es requerido.
+                    jQuery('#' + formId + ' input[name="password"]').rules('remove', 'required');
+                }
+
+                // Lógica condicional para notas_donacion en form-inventario
+                if (formId === 'form-inventario') {
+                    const estadoSelect = document.getElementById('estado');
+                    if (estadoSelect) {
+                        // Cuando el estado cambia
+                        jQuery(estadoSelect).on('change', function() {
+                            const estado = jQuery(this).val();
+                            if (estado === 'Donado' || estado === 'En Descarte') {
+                                jQuery('#notas_donacion').rules('add', {
+                                    required: true,
+                                    messages: {
+                                        required: 'Las notas de donación/descarte son obligatorias para el estado seleccionado.'
+                                    }
+                                });
+                            } else {
+                                jQuery('#notas_donacion').rules('remove', 'required');
+                            }
+                        });
+                        // Y al cargar la página para el estado inicial
+                        const initialEstado = jQuery(estadoSelect).val();
+                        if (initialEstado === 'Donado' || initialEstado === 'En Descarte') {
+                            jQuery('#notas_donacion').rules('add', {
+                                required: true,
+                                messages: {
+                                    required: 'Las notas de donación/descarte son obligatorias para el estado seleccionado.'
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+        }
     }
 });

@@ -66,6 +66,7 @@ class Inventario extends BaseModel
         // **ÚNICA VALIDACIÓN ESPECÍFICA AQUÍ: UNICIDAD DE SERIE**
         // Saneamiento de la serie (trim) antes de la validación y guardar
         $data['serie'] = trim($data['serie'] ?? '');
+        // Usamos el método exists() del BaseModel
         if (!empty($data['serie']) && $this->exists('serie', $data['serie'], $currentId)) {
             throw new \Exception("El número de serie '{$data['serie']}' ya está registrado.");
         }
