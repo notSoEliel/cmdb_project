@@ -4,7 +4,7 @@ $userRole = $_SESSION['user_role'] ?? null;
 $current_route = $_GET['route'] ?? 'home';
 ?>
 <div class="sidebar d-flex flex-column flex-shrink-0 p-3 h-100">
-    <a href="<?= BASE_URL ?>" class="d-flex pt-lg-5 align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+    <a href="<?= BASE_URL ?>" class="d-flex pt-5 pt-lg-3 align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
         <i class="bi bi-box-seam-fill me-2" style="font-size: 2rem;"></i>
         <span class="fs-4">CMDB System</span>
     </a>
