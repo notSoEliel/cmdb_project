@@ -151,6 +151,17 @@ class InventarioController extends BaseController
                 exit;
             }
             $isEditing = true;
+
+            // Lógica mejorada para precargar prefijo y número final al editar
+            // Si la serie existente tiene un patrón de prefijo-número
+            if (preg_match('/^(.*)-(\d+)$/', $equipoActual['serie'], $matches)) {
+                $equipoActual['prefijo_serie'] = $matches[1] . '-'; // Incluir el guion en el prefijo
+                $equipoActual['numero_final_serie'] = $matches[2];
+            } else {
+                // Si no tiene prefijo o no sigue el patrón esperado, asume que toda la serie es el número final
+                $equipoActual['prefijo_serie'] = ''; // Deja el prefijo vacío
+                $equipoActual['numero_final_serie'] = $equipoActual['serie']; // Toda la serie es el número
+            }
         }
 
         // Determinar si se debe mostrar el formulario por lote (ya sea por URL o después de la sugerencia)
@@ -218,17 +229,37 @@ class InventarioController extends BaseController
     public function store()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $inventarioModel = new Inventario();
+            $inventarioImagenModel = new InventarioImagen(); // Instanciamos el modelo de imágenes
+
+            $data = $_POST; // Datos del formulario
+
+            // Determinar si es una edición
+            $isEditing = !empty($data['id']);
+            $currentId = (int)($data['id'] ?? 0);
+
+            // Saneamiento inicial (trim) para todos los campos de texto
+            $data['nombre_equipo'] = trim($data['nombre_equipo'] ?? '');
+            $data['marca'] = trim($data['marca'] ?? '');
+            $data['modelo'] = trim($data['modelo'] ?? '');
+            $data['notas_donacion'] = trim($data['notas_donacion'] ?? '');
+
+            // Normalizar y construir el número de serie completo
+            $data['prefijo_serie'] = strtoupper(trim($data['prefijo_serie'] ?? '')); // ALL CAPS
+            if (!empty($data['prefijo_serie']) && substr($data['prefijo_serie'], -1) !== '-') {
+                $data['prefijo_serie'] .= '-';
+            }
+            $data['numero_inicio_serie'] = (int)($data['numero_inicio_serie'] ?? 0);
+            $baseSerial = $data['prefijo_serie'] . sprintf('%04d', $data['numero_inicio_serie']); // Formato XXXXX-0001
+
+            $cantidad = (int)($data['cantidad'] ?? 1); // Por defecto es 1 si no se envía
+
+            // ID de la categoría "Clave de Software" (AJUSTA ESTE VALOR AL ID REAL DE TU BD)
+            $softwareKeyCategoryId = 9; // El ID para 'Software: Licencia de Software' es 9 según el HTML de add_edit.php
+
+
             try {
-                $inventarioModel = new Inventario();
-                $data = $_POST; // Datos del formulario
-
-                // 1. Saneamiento inicial (trim)
-                $data['serie'] = trim($data['serie'] ?? '');
-                $data['nombre_equipo'] = trim($data['nombre_equipo'] ?? '');
-                $data['marca'] = trim($data['marca'] ?? '');
-                $data['modelo'] = trim($data['modelo'] ?? '');
-
-                // 2. Validaciones de datos (obligatorios, formato, rangos)
+                // Validaciones Comunes para CREACIÓN y EDICIÓN
                 if (empty($data['nombre_equipo'])) {
                     throw new \Exception('El nombre del equipo es obligatorio.');
                 }
@@ -241,14 +272,13 @@ class InventarioController extends BaseController
                 if (empty($data['modelo'])) {
                     throw new \Exception('El modelo es obligatorio.');
                 }
-                if (empty($data['serie'])) {
-                    throw new \Exception('El número de serie es obligatorio.');
+                if (empty($baseSerial)) { // La serie ya construida debe existir
+                    throw new \Exception('El número de serie es obligatorio (prefijo + número).');
                 }
-                // Validar formato de serie (alfanumérico, guiones, guiones bajos, espacios)
-                if (!preg_match('/^[a-zA-Z0-9\s\-_]+$/', $data['serie'])) {
+                if (!preg_match('/^[a-zA-Z0-9\s\-_]+$/', $baseSerial)) {
                     throw new \Exception('El número de serie contiene caracteres no permitidos. Solo se permiten letras, números, guiones, guiones bajos y espacios.');
                 }
-                if (strlen($data['serie']) > 50) { // Longitud máxima
+                if (strlen($baseSerial) > 50) {
                     throw new \Exception('El número de serie es demasiado largo (máximo 50 caracteres).');
                 }
                 if (!is_numeric($data['costo']) || (float)$data['costo'] < 0) {
@@ -260,14 +290,140 @@ class InventarioController extends BaseController
                 if (!is_numeric($data['tiempo_depreciacion_anios']) || (int)$data['tiempo_depreciacion_anios'] < 0) {
                     throw new \Exception('La depreciación en años debe ser un número entero no negativo.');
                 }
-                // Si llegamos aquí, los datos son válidos en el controlador
-                // El modelo se encargará de la unicidad de la serie y el guardado
-                $inventarioModel->save($data);
-                $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Equipo guardado correctamente.', 'icon' => 'success'];
+
+                if ($isEditing) {
+                    // Lógica para EDICIÓN de un solo equipo existente
+                    // La validación de unicidad de serie la maneja InventarioModel::save()
+                    if (empty($data['estado'])) {
+                        throw new \Exception('El estado del equipo es obligatorio.');
+                    }
+                    if (isset($data['estado']) && in_array($data['estado'], ['En Descarte', 'Donado'])) {
+                        if (empty(trim($data['notas_donacion'] ?? ''))) {
+                            throw new \Exception('Las notas de donación/descarte son obligatorias para el estado seleccionado.');
+                        }
+                    }
+
+                    $equipoData = [
+                        'id' => $currentId,
+                        'nombre_equipo' => $data['nombre_equipo'],
+                        'marca' => $data['marca'],
+                        'modelo' => $data['modelo'],
+                        'serie' => $baseSerial, // La serie construida
+                        'costo' => $data['costo'],
+                        'fecha_ingreso' => $data['fecha_ingreso'],
+                        'tiempo_depreciacion_anios' => $data['tiempo_depreciacion_anios'],
+                        'categoria_id' => $data['categoria_id'],
+                        'estado' => $data['estado'],
+                        'notas_donacion' => $data['notas_donacion'],
+                    ];
+
+                    $inventarioModel->save($equipoData);
+                    $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Equipo actualizado correctamente.', 'icon' => 'success'];
+                } else {
+                    // Lógica para CREACIÓN (individual o por lote)
+                    if ($cantidad < 1) {
+                        throw new \Exception('La cantidad de equipos debe ser al menos 1.');
+                    }
+                    if ($data['numero_inicio_serie'] < 0) {
+                        throw new \Exception('El número inicial de serie no puede ser negativo.');
+                    }
+                    if ($cantidad > 1 && (int)($data['categoria_id'] ?? 0) === $softwareKeyCategoryId) {
+                        throw new \Exception('No se permite la creación por lote para la categoría "Clave de Software".');
+                    }
+
+                    // --- Lógica de subida y procesamiento de la miniatura ---
+                    $thumbnailFileName = null; // Inicializar a null
+
+                    // Si hay un archivo de miniatura subido
+                    if (isset($_FILES['imagen_miniatura']) && $_FILES['imagen_miniatura']['error'] === UPLOAD_ERR_OK) {
+                        $imagen = $_FILES['imagen_miniatura'];
+                        $allowed_extensions = ['jpg', 'jpeg', 'png'];
+                        $file_extension = strtolower(pathinfo($imagen['name'], PATHINFO_EXTENSION));
+
+                        if (!in_array($file_extension, $allowed_extensions)) {
+                            throw new \Exception('Solo se permiten imágenes (jpg, jpeg, png) para la miniatura.');
+                        }
+
+                        $uploadDir = '../public/uploads/inventario/';
+                        if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+                        $thumbnailFileName = uniqid() . '-' . basename($imagen['name']);
+                        $targetPath = $uploadDir . $thumbnailFileName;
+
+                        if (!move_uploaded_file($imagen['tmp_name'], $targetPath)) {
+                            throw new \Exception('No se pudo subir la miniatura. Revisa los permisos de la carpeta de uploads.');
+                        }
+                    } elseif ($cantidad > 1) { // Si es un lote, la miniatura es OBLIGATORIA
+                        throw new \Exception('La miniatura es obligatoria para la creación de equipos por lote.');
+                    }
+
+                    // Validación Previa de Rango de Series (solo si es lote)
+                    if ($cantidad > 1) {
+                        $seriesDuplicadasPrevias = $inventarioModel->checkBatchSerialRangeForDuplicates($data['prefijo_serie'], $data['numero_inicio_serie'], $cantidad);
+                        if (!empty($seriesDuplicadasPrevias)) {
+                            $_SESSION['mensaje_sa2'] = ['title' => '¡Error de Lote!', 'text' => 'Algunas series en el rango propuesto ya existen. Por favor, ajuste el Número Inicial de Serie o el Prefijo de Serie. Series en conflicto: ' . implode(', ', $seriesDuplicadasPrevias), 'icon' => 'error'];
+                            header('Location: ' . BASE_URL . 'index.php?route=inventario&action=showAddForm');
+                            exit;
+                        }
+                    }
+
+                    $commonData = [
+                        'nombre_equipo' => $data['nombre_equipo'],
+                        'categoria_id' => $data['categoria_id'],
+                        'marca' => $data['marca'],
+                        'modelo' => $data['modelo'],
+                        'costo' => $data['costo'],
+                        'fecha_ingreso' => $data['fecha_ingreso'],
+                        'tiempo_depreciacion_anios' => $data['tiempo_depreciacion_anios'],
+                        'estado' => 'Disponible', // Estado por defecto para nuevos equipos
+                        'notas_donacion' => null,
+                    ];
+
+                    $erroresSerie = [];
+                    $equiposInsertados = 0;
+
+                    for ($i = 0; $i < $cantidad; $i++) {
+                        $numeroSerieActual = $data['numero_inicio_serie'] + $i;
+                        $serieGenerada = $data['prefijo_serie'] . sprintf('%04d', $numeroSerieActual);
+
+                        $itemData = $commonData;
+                        $itemData['serie'] = $serieGenerada;
+
+                        try {
+                            // Llamamos a InventarioModel::save para crear el equipo base
+                            $newEquipmentId = $inventarioModel->save($itemData); // Obtiene el ID del equipo recién creado
+
+                            // --- Guardar miniatura a través de InventarioImagenModel ---
+                            // Si se subió una miniatura, guardarla en inventario_imagenes y marcarla como thumbnail
+                            if ($thumbnailFileName) {
+                                $inventarioImagenModel->save($newEquipmentId, $thumbnailFileName);
+                                // Marcar la imagen recién guardada como thumbnail (usando su propio ID)
+                                $inventarioImagenModel->setThumbnail($newEquipmentId, \App\Core\Database::getInstance()->lastInsertId());
+                            }
+                            $equiposInsertados++;
+                        } catch (\Exception $e) {
+                            if (strpos($e->getMessage(), 'El número de serie') !== false && strpos($e->getMessage(), 'ya está registrado') !== false) {
+                                $erroresSerie[] = $serieGenerada;
+                            } else {
+                                error_log("Error al guardar la serie '{$serieGenerada}': " . $e->getMessage());
+                                $erroresSerie[] = $serieGenerada . " (Error desconocido)";
+                            }
+                        }
+                    }
+
+                    if ($equiposInsertados > 0 && empty($erroresSerie)) {
+                        $msgText = ($cantidad == 1) ? 'Equipo guardado correctamente.' : "Se añadieron {$equiposInsertados} equipos por lote correctamente.";
+                        $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => $msgText, 'icon' => 'success'];
+                    } elseif ($equiposInsertados > 0 && !empty($erroresSerie)) {
+                        $msgText = ($cantidad == 1) ? 'Se guardó 1 equipo, pero hubo problemas.' : "Se añadieron {$equiposInsertados} equipos con éxito, pero " . count($erroresSerie) . " series fueron omitidas porque ya existían o hubo un problema: " . implode(', ', $erroresSerie) . ". Por favor, revise el inventario.";
+                        $_SESSION['mensaje_sa2'] = ['title' => '¡Alerta!', 'text' => $msgText, 'icon' => 'warning'];
+                    } else {
+                        $_SESSION['mensaje_sa2'] = ['title' => '¡Error!', 'text' => 'No se pudo añadir ningún equipo. Todas las series generadas ya existen o hubo otros problemas. Por favor, verifique el formulario.', 'icon' => 'error'];
+                    }
+                }
             } catch (\Throwable $e) {
                 $_SESSION['mensaje_sa2'] = ['title' => '¡Error!', 'text' => $e->getMessage(), 'icon' => 'error'];
             }
-            header('Location: ' . BASE_URL . 'index.php?route=inventario');
+            header('Location: ' . BASE_URL . 'index.php?route=inventario'); // Redirigir siempre
             exit;
         }
     }
@@ -345,143 +501,6 @@ class InventarioController extends BaseController
             exit;
         }
     }
-
-
-    /**
-     * Procesa la creación de múltiples equipos por lote.
-     */
-    public function batchStore()
-    {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            try {
-                $inventarioModel = new Inventario();
-                $data = $_POST; // Datos del formulario
-
-                // 0. Validaciones Adicionales para Lote
-                // ID de la categoría "Clave de Software"
-                $softwareKeyCategoryId = 9;
-
-                if ((int)($data['categoria_id'] ?? 0) === $softwareKeyCategoryId) {
-                    throw new \Exception('No se permite la creación por lote para la categoría "Clave de Software".');
-                }
-
-                // Forzar que el prefijo de serie termine en guion si no está vacío
-                $data['prefijo_serie'] = trim($data['prefijo_serie'] ?? '');
-                if (!empty($data['prefijo_serie']) && substr($data['prefijo_serie'], -1) !== '-') {
-                    $data['prefijo_serie'] .= '-';
-                }
-
-                // 1. Saneamiento inicial (trim) para todos los campos de texto
-                $data['cantidad'] = (int)($data['cantidad'] ?? 0);
-                $data['prefijo_serie'] = trim($data['prefijo_serie'] ?? '');
-                $data['numero_inicio_serie'] = (int)($data['numero_inicio_serie'] ?? 0);
-                $data['nombre_equipo'] = trim($data['nombre_equipo'] ?? '');
-                $data['marca'] = trim($data['marca'] ?? '');
-                $data['modelo'] = trim($data['modelo'] ?? '');
-                $data['costo'] = (float)($data['costo'] ?? 0.00);
-                $data['fecha_ingreso'] = $data['fecha_ingreso'] ?? '';
-                $data['tiempo_depreciacion_anios'] = (int)($data['tiempo_depreciacion_anios'] ?? 0);
-
-                // 2. Validaciones de datos (obligatorios, formato, rangos)
-                if ($data['cantidad'] < 1) {
-                    throw new \Exception('La cantidad de equipos debe ser al menos 1.');
-                }
-                if ($data['numero_inicio_serie'] < 0) {
-                    throw new \Exception('El número inicial de serie no puede ser negativo.');
-                }
-                if (empty($data['nombre_equipo'])) {
-                    throw new \Exception('El nombre del equipo es obligatorio para el lote.');
-                }
-                if (empty($data['categoria_id'])) {
-                    throw new \Exception('La categoría es obligatoria para el lote.');
-                }
-                if (empty($data['marca'])) {
-                    throw new \Exception('La marca es obligatoria para el lote.');
-                }
-                if (empty($data['modelo'])) {
-                    throw new \Exception('El modelo es obligatorio para el lote.');
-                }
-                // Validar formato de prefijo de serie (puede ser vacío, pero si tiene, que sea válido)
-                if (!empty($data['prefijo_serie']) && !preg_match('/^[a-zA-Z0-9\s\-_]+$/', $data['prefijo_serie'])) {
-                    throw new \Exception('El prefijo de serie contiene caracteres no permitidos. Solo se permiten letras, números, guiones, guiones bajos y espacios.');
-                }
-                if (!is_numeric($data['costo']) || $data['costo'] < 0) {
-                    throw new \Exception('El costo debe ser un número válido y no negativo.');
-                }
-                if (empty($data['fecha_ingreso'])) {
-                    throw new \Exception('La fecha de ingreso es obligatoria para el lote.');
-                }
-                if (!is_numeric($data['tiempo_depreciacion_anios']) || $data['tiempo_depreciacion_anios'] < 0) {
-                    throw new \Exception('La depreciación en años debe ser un número entero no negativo.');
-                }
-
-                // 3. Validación Previa de Rango de Series (Hybrid Strategy)
-                $seriesDuplicadasPrevias = $inventarioModel->checkBatchSerialRangeForDuplicates($data['prefijo_serie'], $data['numero_inicio_serie'], $data['cantidad']);
-                if (!empty($seriesDuplicadasPrevias)) {
-                    $_SESSION['mensaje_sa2'] = ['title' => '¡Error de Lote!', 'text' => 'Algunas series en el rango propuesto ya existen. Por favor, ajuste el Número Inicial de Serie o el Prefijo de Serie. Series en conflicto: ' . implode(', ', $seriesDuplicadasPrevias), 'icon' => 'error'];
-                    // Redirigir de vuelta al formulario de lote para que el usuario corrija
-                    header('Location: ' . BASE_URL . 'index.php?route=inventario&action=showAddForm&form_action=batch');
-                    exit;
-                }
-
-                // Si todas las validaciones pasan, procedemos a insertar los equipos
-                $commonData = [
-                    'nombre_equipo' => $data['nombre_equipo'],
-                    'categoria_id' => $data['categoria_id'],
-                    'marca' => $data['marca'],
-                    'modelo' => $data['modelo'],
-                    'costo' => $data['costo'],
-                    'fecha_ingreso' => $data['fecha_ingreso'],
-                    'tiempo_depreciacion_anios' => $data['tiempo_depreciacion_anios'],
-                    'estado' => 'Disponible', // Estado por defecto para nuevos equipos por lote
-                    'notas_donacion' => null, // Las notas de donación/descarte no aplican a la creación por lote
-                ];
-
-                $erroresSerie = [];
-                $equiposInsertados = 0;
-
-                for ($i = 0; $i < $data['cantidad']; $i++) {
-                    $numeroSerie = $data['numero_inicio_serie'] + $i;
-                    // Formato de número de serie incremental con 4 dígitos (%04d)
-                    $serieGenerada = $data['prefijo_serie'] . sprintf('%04d', $numeroSerie);
-
-                    $itemData = $commonData;
-                    $itemData['serie'] = $serieGenerada;
-
-                    try {
-                        // El método save() del modelo ya contiene la validación de unicidad
-                        $inventarioModel->save($itemData);
-                        $equiposInsertados++;
-                    } catch (\Exception $e) {
-                        // Si el error es por duplicado (ya debería haber sido capturado por checkBatchSerialRangeForDuplicates,
-                        // pero es un fallback) o por otros problemas específicos de guardado.
-                        if (strpos($e->getMessage(), 'El número de serie') !== false && strpos($e->getMessage(), 'ya está registrado') !== false) {
-                            $erroresSerie[] = $serieGenerada;
-                        } else {
-                            // Si es otro tipo de error al guardar un ítem individual, registrarlo o relanzarlo.
-                            error_log("Error al guardar la serie '{$serieGenerada}': " . $e->getMessage());
-                            $erroresSerie[] = $serieGenerada . " (Error desconocido)";
-                        }
-                    }
-                }
-
-                // Mensajes SweetAlert2 finales
-                if ($equiposInsertados > 0 && empty($erroresSerie)) {
-                    $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => "Se añadieron {$equiposInsertados} equipos por lote correctamente.", 'icon' => 'success'];
-                } elseif ($equiposInsertados > 0 && !empty($erroresSerie)) {
-                    $_SESSION['mensaje_sa2'] = ['title' => '¡Alerta!', 'text' => "Se añadieron {$equiposInsertados} equipos con éxito, pero " . count($erroresSerie) . " series fueron omitidas porque ya existían o hubo un problema: " . implode(', ', $erroresSerie) . ". Por favor, revise el inventario.", 'icon' => 'warning'];
-                } else {
-                    $_SESSION['mensaje_sa2'] = ['title' => '¡Error!', 'text' => 'No se pudo añadir ningún equipo por lote. Todas las series generadas ya existen o hubo otros problemas. Por favor, verifique el formulario.', 'icon' => 'error'];
-                }
-            } catch (\Throwable $e) {
-                // Capturar cualquier otra excepción no manejada específicamente
-                $_SESSION['mensaje_sa2'] = ['title' => '¡Error!', 'text' => 'Hubo un problema al procesar el lote: ' . $e->getMessage(), 'icon' => 'error'];
-            }
-            header('Location: ' . BASE_URL . 'index.php?route=inventario'); // Redirigir siempre
-            exit;
-        }
-    }
-
 
     /**
      * Muestra el formulario para asignar un equipo a un colaborador.

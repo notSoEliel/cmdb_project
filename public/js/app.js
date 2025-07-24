@@ -79,59 +79,76 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- Lógica para la sugerencia automática del número de serie en el formulario de lote ---
+    // --- Lógica para la sugerencia automática del número de serie en el formulario unificado ---
     const prefijoSerieInput = document.getElementById('prefijo_serie');
     const numeroInicioSerieInput = document.getElementById('numero_inicio_serie');
     const suggestedSerialText = document.getElementById('current-suggested-serial');
 
-    if (prefijoSerieInput && numeroInicioSerieInput) {
-        const getSuggestedSerialNumber = async (prefix) => {
-            const url = `index.php?route=inventario&action=showAddForm&form_action=batch&prefijo_serie_sug=${encodeURIComponent(prefix)}`;
-            const response = await fetch(url);
+    // Esta función se activará por cambios en prefijo_serie Y numero_inicio_serie
+    const updateSuggestedSerialNumber = async () => {
+        if (prefijoSerieInput && numeroInicioSerieInput) {
+            const prefix = prefijoSerieInput.value;
+            const currentNumber = numeroInicioSerieInput.value;
+
+            // Solo si el prefijo o el número actual cambian, hacemos la llamada AJAX
+            // Esta es la llamada que obtiene la SUGERENCIA del servidor
+            const response = await fetch(`index.php?route=inventario&action=showAddForm&form_action=batch&prefijo_serie_sug=${encodeURIComponent(prefix)}`);
             const html = await response.text();
 
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html;
 
             const newSuggestedValue = tempDiv.querySelector('#numero_inicio_serie').value;
-            return newSuggestedValue;
-        };
 
-        prefijoSerieInput.addEventListener('input', async () => {
-            const prefix = prefijoSerieInput.value;
-            const newSuggestedNum = await getSuggestedSerialNumber(prefix);
-            numeroInicioSerieInput.value = newSuggestedNum;
-            if (suggestedSerialText) {
-                suggestedSerialText.textContent = `Sugerido: ${newSuggestedNum}`;
+            // Actualizar solo si la sugerencia es diferente o si el campo está vacío
+            if (numeroInicioSerieInput.value === '' || parseFloat(numeroInicioSerieInput.value) < parseFloat(newSuggestedValue)) {
+                numeroInicioSerieInput.value = newSuggestedValue;
             }
-        });
+
+            if (suggestedSerialText) {
+                suggestedSerialText.textContent = `Sugerido: ${newSuggestedValue}`;
+            }
+        }
+    };
+
+    if (prefijoSerieInput) {
+        prefijoSerieInput.addEventListener('input', updateSuggestedSerialNumber);
+    }
+    if (numeroInicioSerieInput) {
+        // También se actualiza la sugerencia si el número inicial cambia, pero solo si es un número válido y es menor que la sugerencia.
+        numeroInicioSerieInput.addEventListener('input', updateSuggestedSerialNumber);
     }
 
-    // --- NUEVA FUNCIÓN PARA PARSEAR REGLAS DE VALIDACIÓN CON CÓDIGO JS EMBEBIDO ---
+    // --- NUEVA FUNCIÓN PARA PARSEAR REGLAS DE VALIDACIÓN CON CÓDIGO JS EMBEDIDO ---
     function parseJQueryValidateRules(rules) {
-        // Hacemos una copia profunda para no modificar el objeto original en `validationRules`
-        // Esto es importante para que si tienes varias instancias de reglas, no se sobrescriban.
-        const processedRules = JSON.parse(JSON.stringify(rules));
+        const processedRules = JSON.parse(JSON.stringify(rules)); // Deep copy para no modificar el original
+
+        // Función auxiliar para procesar una propiedad específica
+        const processProperty = (obj, propName) => {
+            if (typeof obj[propName] === 'string' && obj[propName].startsWith('__JS_FUNCTION__')) {
+                const funcBody = obj[propName].substring('__JS_FUNCTION__'.length);
+                obj[propName] = new Function(funcBody); // Convierte la cadena en una función
+            }
+        };
 
         for (const fieldName in processedRules) {
-            // Buscamos reglas con 'remote' y que tengan la propiedad 'data'
+            // 1. Procesar la propiedad 'required' directamente si existe
+            if (processedRules[fieldName].required) {
+                processProperty(processedRules[fieldName], 'required');
+            }
+
+            // 2. Procesar propiedades dentro de 'remote.data' (lógica ya existente)
             if (processedRules[fieldName].remote && processedRules[fieldName].remote.data) {
                 for (const paramName in processedRules[fieldName].remote.data) {
-                    const paramValue = processedRules[fieldName].remote.data[paramName];
-                    // Si el valor es una cadena y empieza con nuestro prefijo especial
-                    if (typeof paramValue === 'string' && paramValue.startsWith('__JS_FUNCTION__')) {
-                        const funcBody = paramValue.substring('__JS_FUNCTION__'.length); // Obtenemos solo el cuerpo de la función (sin el prefijo)
-                        // Convertimos la cadena en una función JavaScript real usando el constructor Function
-                        // Esto permite que el código JS que viene como string sea ejecutado.
-                        processedRules[fieldName].remote.data[paramName] = new Function(funcBody);
-                    }
+                    processProperty(processedRules[fieldName].remote.data, paramName);
                 }
             }
+            // Si en el futuro añades más propiedades con __JS_FUNCTION__ (ej. 'minlength', 'max'), deberías añadirlas aquí también.
         }
         return processedRules;
     }
 
-    // --- Inicialización de SweetAlert2 si hay un mensaje en la sesión ---
+    // --- Inicialización de SweetAlert2 si hay un mensaje en la sesión (DEJAR ESTO TAL CUAL) ---
     const mensajeSa2 = JSON.parse(sessionStorage.getItem('mensaje_sa2'));
     if (mensajeSa2) {
         Swal.fire({
@@ -154,11 +171,10 @@ document.addEventListener('DOMContentLoaded', function() {
         sessionStorage.removeItem('php_message');
     }
 
-    // --- Inicialización de jQuery Validate para los formularios ---
-    // Asegúrate de que jQuery y jQuery Validate estén cargados antes que este script.
-    // 'validationRules' es una variable global definida por ValidationService.php (se incluye antes)
+
+    // --- Inicialización de jQuery Validate para el formulario unificado ---
     if (typeof jQuery !== 'undefined' && typeof jQuery.validator !== 'undefined' && typeof validationRules !== 'undefined') {
-        // Añadir métodos de validación personalizados si no existen
+        // Añadir métodos de validación personalizados si no existen (deben ser los mismos que antes)
         if (!jQuery.validator.methods.phonePA) {
             jQuery.validator.addMethod('phonePA', function(value, element) {
                 let cleanValue = value.replace(/-/g, '');
@@ -170,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return this.optional(element) || /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(value);
             }, 'Por favor, introduce una dirección IP v4 válida.');
         }
-        if (!jQuery.validator.methods.pattern) { // Si el método 'pattern' no está en el plugin
+        if (!jQuery.validator.methods.pattern) {
             jQuery.validator.addMethod("pattern", function(value, element, param) {
                 if (this.optional(element)) {
                     return true;
@@ -181,98 +197,68 @@ document.addEventListener('DOMContentLoaded', function() {
                 return param.test(value);
             }, "Formato inválido.");
         }
-        if (!jQuery.validator.methods.dateISO) { // Asegurarse de que dateISO está disponible
+        if (!jQuery.validator.methods.dateISO) {
             jQuery.validator.addMethod("dateISO", function(value, element) {
                 return this.optional(element) || /^\d{4}[\/\-](0?[1-9]|1[012])[\/\-](0?[1-9]|[12][0-9]|3[01])$/.test(value);
             }, jQuery.validator.messages.date);
         }
 
-        for (const formId in validationRules) {
-            if (document.getElementById(formId)) { // Solo inicializar si el formulario existe en la página
-                // Procesa las reglas para convertir las cadenas de función en funciones reales
-                const processedRules = parseJQueryValidateRules(validationRules[formId].rules);
-                jQuery('#' + formId).validate({
-                    rules: processedRules,
-                    messages: validationRules[formId].messages,
-                    errorElement: 'div',
-                    errorClass: 'text-danger form-text', // Añadir form-text para mejor estilo
-                    errorPlacement: function(error, element) {
-                        if (element.parent().hasClass('input-group')) {
-                            error.insertAfter(element.parent());
-                        } else if (element.hasClass('form-select')) { // Para selectores
-                            error.insertAfter(element.next('span.select2-container')); // Si usas select2
-                        } else {
-                            error.insertAfter(element);
-                        }
-                    },
-                    highlight: function(element) {
-                        jQuery(element).addClass('is-invalid').removeClass('is-valid');
-                    },
-                    unhighlight: function(element) {
-                        jQuery(element).removeClass('is-invalid').addClass('is-valid');
-                    },
-                    // Lógica para contraseñas condicionalmente requeridas (form-colaborador, form-usuario)
-                    // y notas de donación (form-inventario)
-                    // Esta lógica se maneja directamente aquí al configurar las reglas en .validate()
-                    // Si el formulario es de colaborador o usuario
-                    submitHandler: function(form) {
-                        // Guardar mensaje SweetAlert para después de la redirección
-                        // sessionStorage.setItem('mensaje_sa2', JSON.stringify({
-                        //     title: 'Procesando...',
-                        //     text: 'Guardando datos, por favor espera.',
-                        //     icon: 'info'
-                        // }));
-                        form.submit(); // Enviar el formulario
+        // El ID del formulario principal ahora es 'form-inventario-form'
+        const formId = 'form-inventario-form';
+        if (document.getElementById(formId)) {
+            const processedRules = parseJQueryValidateRules(validationRules[formId].rules);
+
+            jQuery('#' + formId).validate({
+                rules: processedRules,
+                messages: validationRules[formId].messages,
+                errorElement: 'div',
+                errorClass: 'text-danger form-text',
+                errorPlacement: function(error, element) {
+                    if (element.parent().hasClass('input-group')) {
+                        error.insertAfter(element.parent());
+                    } else if (element.hasClass('form-select')) {
+                        error.insertAfter(element.next('span.select2-container'));
+                    } else {
+                        error.insertAfter(element);
                     }
-                });
-
-                // Lógica condicional para campos específicos que dependen del estado del formulario (edición vs. creación)
-                // Se aplica a form-colaborador y form-usuario para la contraseña
-                const isEditing = jQuery('#' + formId + ' input[name="id"]').val() !== undefined && jQuery('#' + formId + ' input[name="id"]').val() !== '';
-                if ((formId === 'form-colaborador' || formId === 'form-usuario') && !isEditing) {
-                    // Si estamos creando, la contraseña es obligatoria.
-                    jQuery('#' + formId + ' input[name="password"]').rules('add', {
-                        required: true,
-                        messages: {
-                            required: 'La contraseña es obligatoria al crear.'
-                        }
-                    });
-                } else if ((formId === 'form-colaborador' || formId === 'form-usuario') && isEditing) {
-                    // Si estamos editando, la contraseña no es obligatoria a menos que se haya rellenado.
-                    // Para que no valide si se deja vacío al editar, la regla 'required' debe ser eliminada
-                    // o no añadida si el campo está vacío.
-                    // Aquí simplemente la regla 'minlength' será suficiente si no es requerido.
-                    jQuery('#' + formId + ' input[name="password"]').rules('remove', 'required');
+                },
+                highlight: function(element) {
+                    jQuery(element).addClass('is-invalid').removeClass('is-valid');
+                },
+                unhighlight: function(element) {
+                    jQuery(element).removeClass('is-invalid').addClass('is-valid');
+                },
+                submitHandler: function(form) {
+                    form.submit();
                 }
+            });
 
-                // Lógica condicional para notas_donacion en form-inventario
-                if (formId === 'form-inventario') {
-                    const estadoSelect = document.getElementById('estado');
-                    if (estadoSelect) {
-                        // Cuando el estado cambia
-                        jQuery(estadoSelect).on('change', function() {
-                            const estado = jQuery(this).val();
-                            if (estado === 'Donado' || estado === 'En Descarte') {
-                                jQuery('#notas_donacion').rules('add', {
-                                    required: true,
-                                    messages: {
-                                        required: 'Las notas de donación/descarte son obligatorias para el estado seleccionado.'
-                                    }
-                                });
-                            } else {
-                                jQuery('#notas_donacion').rules('remove', 'required');
-                            }
-                        });
-                        // Y al cargar la página para el estado inicial
-                        const initialEstado = jQuery(estadoSelect).val();
-                        if (initialEstado === 'Donado' || initialEstado === 'En Descarte') {
+            // Lógica condicional para notas_donacion en form-inventario-form (solo en edición)
+            const isEditing = jQuery('#' + formId + ' input[name="id"]').val() !== undefined && jQuery('#' + formId + ' input[name="id"]').val() !== '';
+            if (formId === 'form-inventario-form' && isEditing) {
+                const estadoSelect = document.getElementById('estado');
+                if (estadoSelect) {
+                    jQuery(estadoSelect).on('change', function() {
+                        const estado = jQuery(this).val();
+                        if (estado === 'Donado' || estado === 'En Descarte') {
                             jQuery('#notas_donacion').rules('add', {
                                 required: true,
                                 messages: {
                                     required: 'Las notas de donación/descarte son obligatorias para el estado seleccionado.'
                                 }
                             });
+                        } else {
+                            jQuery('#notas_donacion').rules('remove', 'required');
                         }
+                    });
+                    const initialEstado = jQuery(estadoSelect).val();
+                    if (initialEstado === 'Donado' || initialEstado === 'En Descarte') {
+                        jQuery('#notas_donacion').rules('add', {
+                            required: true,
+                            messages: {
+                                required: 'Las notas de donación/descarte son obligatorias para el estado seleccionado.'
+                            }
+                        });
                     }
                 }
             }

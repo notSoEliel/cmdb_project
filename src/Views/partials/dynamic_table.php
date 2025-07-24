@@ -112,11 +112,14 @@ if (!empty($pagination['filters'])) {
                                         // Renderizado condicional basado en el tipo de columna
                                         $cellValue = $row[$column['field']] ?? 'N/A';
                                         if (isset($column['type']) && $column['type'] === 'image') {
-                                            if (!empty($cellValue)) {
-                                                echo '<img src="' . BASE_URL . 'uploads/inventario/' . htmlspecialchars($cellValue) . '" alt="Miniatura" style="width: 40px; height: 40px; object-fit: cover;" class="rounded">';
+                                            // Si $cellValue es null, una cadena vacía, o la cadena literal 'N/A',
+                                            // entonces usamos la imagen por defecto. De lo contrario, usamos la ruta subida.
+                                            if (empty($cellValue) || $cellValue === 'N/A') {
+                                                $imagePath = BASE_URL . 'assets/placeholder.png'; // Usamos placeholder.png
                                             } else {
-                                                echo '<span class="text-muted"><i class="bi bi-image" style="font-size: 1.5rem;"></i></span>';
+                                                $imagePath = BASE_URL . 'uploads/inventario/' . htmlspecialchars($cellValue);
                                             }
+                                            echo '<img src="' . $imagePath . '" alt="Miniatura" style="width: 40px; height: 40px; object-fit: cover;" class="rounded">';
                                         } elseif ($column['field'] === 'estado') {
                                             // Lógica para mostrar insignias de colores para el estado
                                             $badges = ['En Stock' => 'bg-success', 'Asignado' => 'bg-primary', 'En Reparación' => 'bg-info text-dark', 'Dañado' => 'bg-warning text-dark', 'En Descarte' => 'bg-secondary', 'Donado' => 'bg-dark'];

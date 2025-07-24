@@ -11,7 +11,7 @@
         <?php foreach ($equipos as $equipo): ?>
             <div class="col-sm-12 col-md-6 col-lg-4 mb-4">
                 <div class="card h-100 shadow-sm border-0">
-                    <img src="<?= BASE_URL . 'uploads/inventario/' . ($equipo['thumbnail_path'] ?? 'placeholder.png') ?>"
+                    <img src="<?= BASE_URL . ($equipo['thumbnail_path'] ? 'uploads/inventario/' . $equipo['thumbnail_path'] : 'assets/placeholder.png') ?>"
                         class="card-img-top"
                         alt="<?= htmlspecialchars($equipo['nombre_equipo']) ?>"
                         style="height: 200px; object-fit: cover;">
