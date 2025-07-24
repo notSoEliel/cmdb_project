@@ -104,4 +104,20 @@ class Necesidad extends BaseModel
         $result = Database::getInstance()->query($sql, ['estado' => $status])->find();
         return $result['COUNT(*)'] ?? 0;
     }
+
+    /**
+     * Cuenta el número de solicitudes por un estado específico para un colaborador dado.
+     * @param string $status El estado de la solicitud.
+     * @param int $colaboradorId El ID del colaborador.
+     * @return int
+     */
+    public function countByEstadoAndColaborador(string $status, int $colaboradorId): int
+    {
+        $sql = "SELECT COUNT(*) FROM {$this->tableName} WHERE estado = :estado AND colaborador_id = :colaborador_id";
+        $result = Database::getInstance()->query($sql, [
+            'estado' => $status,
+            'colaborador_id' => $colaboradorId
+        ])->find();
+        return $result['COUNT(*)'] ?? 0;
+    }
 }

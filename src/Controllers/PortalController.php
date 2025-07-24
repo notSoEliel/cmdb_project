@@ -3,8 +3,10 @@
 namespace App\Controllers;
 
 use App\Models\Inventario;
-use App\Models\Asignacion; // Asegúrate de que esta línea exista para usar el modelo de Asignacion
-use App\Models\InventarioImagen; // Asegúrate de que esta línea exista para usar el modelo de InventarioImagen
+use App\Models\Asignacion;
+use App\Models\InventarioImagen;
+use App\Models\Colaborador;
+use App\Models\Necesidad;
 
 class PortalController extends BaseController
 {
@@ -14,8 +16,27 @@ class PortalController extends BaseController
      */
     public function index()
     {
+        $colaboradorId = $_SESSION['user_id'] ?? 0; // Obtiene el ID del colaborador logueado
+        $colaboradorModel = new Colaborador();
+        $inventarioModel = new Inventario();
+        $necesidadModel = new Necesidad();
+
+        // Obtener todos los datos del colaborador logueado (incluida la foto de perfil)
+        $colaborador = $colaboradorModel->findById($colaboradorId);
+
+        // Obtener métricas específicas para este colaborador
+        $totalEquiposAsignados = $inventarioModel->countAssignedToColaborador($colaboradorId);
+        $solicitudesColaboradorPendientes = $necesidadModel->countByEstadoAndColaborador('Solicitado', $colaboradorId);
+        $solicitudesColaboradorAprobadas = $necesidadModel->countByEstadoAndColaborador('Aprobado', $colaboradorId);
+        $solicitudesColaboradorCompletadas = $necesidadModel->countByEstadoAndColaborador('Completado', $colaboradorId);
+
         $this->render('Views/portal/index.php', [
-            'pageTitle' => 'Portal del Colaborador'
+            'pageTitle' => 'Portal del Colaborador',
+            'colaborador' => $colaborador, // Pasa los datos completos del colaborador
+            'totalEquiposAsignados' => $totalEquiposAsignados,
+            'solicitudesColaboradorPendientes' => $solicitudesColaboradorPendientes,
+            'solicitudesColaboradorAprobadas' => $solicitudesColaboradorAprobadas,
+            'solicitudesColaboradorCompletadas' => $solicitudesColaboradorCompletadas,
         ]);
     }
 

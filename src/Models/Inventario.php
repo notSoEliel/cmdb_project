@@ -297,4 +297,23 @@ class Inventario extends BaseModel
         $result = Database::getInstance()->query($sql, ['months_ahead' => $monthsAhead])->find();
         return $result['COUNT(*)'] ?? 0;
     }
+
+    /**
+     * Cuenta el número de equipos asignados a un colaborador específico.
+     * Excluye donados y descartados, y solo considera asignaciones activas.
+     * @param int $colaboradorId El ID del colaborador.
+     * @return int El número de equipos asignados.
+     */
+    public function countAssignedToColaborador(int $colaboradorId): int
+    {
+        $prefix = $this->tableAlias ?? $this->tableName;
+        // Consulta para contar equipos asignados a un colaborador y que la asignación esté activa
+        $sql = "SELECT COUNT(DISTINCT {$prefix}.id) FROM {$this->tableName} AS {$prefix}
+            JOIN asignaciones a ON a.inventario_id = {$prefix}.id
+            WHERE a.colaborador_id = :colaborador_id
+            AND a.fecha_devolucion IS NULL
+            AND {$prefix}.estado NOT IN ('Donado', 'En Descarte')";
+        $result = Database::getInstance()->query($sql, ['colaborador_id' => $colaboradorId])->find();
+        return $result['COUNT(DISTINCT ' . $prefix . '.id)'] ?? 0; // Ajusta el nombre de la columna COUNT
+    }
 }
