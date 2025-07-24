@@ -131,7 +131,7 @@
             <?php
               $profilePhoto = !empty($colaborador['foto_perfil'])
                 ? BASE_URL . 'uploads/colaboradores/' . htmlspecialchars($colaborador['foto_perfil'])
-                : BASE_URL . 'public/assets/default-avatar.png';
+                : BASE_URL . '/assets/default-avatar.png';
             ?>
             <img src="<?= $profilePhoto ?>" alt="Foto de Perfil"/>
             <h5 class="card-title">¡Bienvenido, <?= htmlspecialchars($colaborador['nombre'] ?? 'Colaborador') ?>!</h5>
