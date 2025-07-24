@@ -9,8 +9,6 @@ use App\Models\Colaborador;
 use App\Models\Asignacion;
 use App\Models\InventarioImagen;
 
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Writer\PngWriter;
 

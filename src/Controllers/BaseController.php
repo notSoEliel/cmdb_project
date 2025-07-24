@@ -56,6 +56,7 @@ abstract class BaseController
                     'checkSerialUniqueness',
                     'showQrCode',
                     'showDonados',
+                    'revertirDonacion',
                 ],
                 'colaboradores' => ['index', 'store', 'update'],
                 'categorias' => ['index', 'store', 'update', 'destroy'],

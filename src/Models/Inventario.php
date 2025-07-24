@@ -82,13 +82,16 @@ class Inventario extends BaseModel
             'fecha_ingreso' => !empty($data['fecha_ingreso']) ? $data['fecha_ingreso'] : date('Y-m-d'),
             'tiempo_depreciacion_anios' => !empty($data['tiempo_depreciacion_anios']) ? (int)$data['tiempo_depreciacion_anios'] : 0,
             'categoria_id' => $data['categoria_id'] ?? null,
-            'estado' => $data['estado'] ?? 'Disponible', // El controlador debe enviar el estado. Aquí un fallback.
-            'notas_donacion' => $data['notas_donacion'] ?? null, // El controlador debe enviar las notas. Aquí un fallback.
+            'estado' => $data['estado'] ?? 'En stock', // El controlador debe enviar el estado. Aquí un fallback.
         ];
 
         if ($currentId) {
-            // MODO UPDATE
+            // --- INICIO DE LA MODIFICACIÓN ---
+            // MODO UPDATE: Se añaden 'estado' y 'notas_donacion' a los parámetros
             $params['id'] = $currentId;
+            $params['estado'] = $data['estado']; // Se toma el estado del formulario
+            $params['notas_donacion'] = ($data['estado'] === 'Donado' || $data['estado'] === 'En Descarte') ? ($data['notas_donacion'] ?? null) : null;
+            // La consulta UPDATE ahora incluye los campos 'estado' y 'notas_donacion'
             $sql = "UPDATE {$this->tableName} SET
                         nombre_equipo = :nombre_equipo, marca = :marca, modelo = :modelo, serie = :serie,
                         costo = :costo, fecha_ingreso = :fecha_ingreso,
@@ -96,17 +99,15 @@ class Inventario extends BaseModel
                         categoria_id = :categoria_id, estado = :estado, notas_donacion = :notas_donacion
                     WHERE id = :id";
         } else {
-            // MODO CREATE
-            $sql = "INSERT INTO {$this->tableName} (nombre_equipo, marca, modelo, serie, costo, fecha_ingreso, tiempo_depreciacion_anios, categoria_id, estado, notas_donacion)
-                    VALUES (:nombre_equipo, :marca, :modelo, :serie, :costo, :fecha_ingreso, :tiempo_depreciacion_anios, :categoria_id, :estado, :notas_donacion)";
+            // MODO CREATE: Se establece el estado inicial a "En Stock".
+            $params['estado'] = 'En stock';
+            // $params['notas_donacion'] = null; // No se permite ingresar notas de donación en la creación.
+            $sql = "INSERT INTO {$this->tableName} (nombre_equipo, marca, modelo, serie, costo, fecha_ingreso, tiempo_depreciacion_anios, categoria_id, estado)
+                    VALUES (:nombre_equipo, :marca, :modelo, :serie, :costo, :fecha_ingreso, :tiempo_depreciacion_anios, :categoria_id, :estado)";
         }
 
         Database::getInstance()->query($sql, $params);
-
-        if (!$currentId) {
-            return Database::getInstance()->lastInsertId();
-        }
-        return $currentId;
+        return true;
     }
 
 
