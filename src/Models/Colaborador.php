@@ -32,7 +32,7 @@ class Colaborador extends BaseModel
      * @param array $data Datos del colaborador.
      * @return bool
      */
-    public function save($data)
+    public function save(array $data, array $files = [])
     {
         // Se obtiene el ID actual (si estamos editando) para excluirlo de la comprobación.
         $currentId = !empty($data['id']) ? (int)$data['id'] : null;
