@@ -1,15 +1,31 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Detalles del Activo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles del Activo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="bg-light py-3"> <div class="container"> <div class="card shadow-sm">
+
+<body class="bg-light py-3">
+    <div class="container">
+        <div class="card shadow-sm">
             <div class="card-header fs-5 text-white bg-dark py-3"> Detalles del Activo
             </div>
-            <div class="card-body p-3"> <h5 class="card-title mb-2"><?= htmlspecialchars($equipo['nombre_equipo']) ?></h5> <ul class="list-group list-group-flush">
-                    <li class="list-group-item py-2"><strong>ID:</strong> <span class="fw-light"><?= $equipo['id'] ?></span></li> <li class="list-group-item py-2"><strong>Categoría:</strong> <span class="fw-light"><?= htmlspecialchars($equipo['nombre_categoria']) ?></span></li>
+            <div class="card-body p-3">
+                <h5 class="card-title mb-2"><?= htmlspecialchars($equipo['nombre_equipo']) ?></h5>
+
+                <?php
+                // Determinar la ruta de la imagen: si hay thumbnail_path, usarla; si no, usar la por defecto.
+                $thumbnailPath = !empty($equipo['thumbnail_path']) ? BASE_URL . 'uploads/inventario/' . htmlspecialchars($equipo['thumbnail_path']) : BASE_URL . 'assets/placeholder.png';
+                ?>
+                <div class="text-center mb-3">
+                    <img src="<?= $thumbnailPath ?>" alt="Imagen de <?= htmlspecialchars($equipo['nombre_equipo']) ?>" class="img-fluid rounded" style="max-width: 250px; height: auto; object-fit: cover;">
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item py-2"><strong>ID:</strong> <span class="fw-light"><?= $equipo['id'] ?></span></li>
+                    <li class="list-group-item py-2"><strong>Categoría:</strong> <span class="fw-light"><?= htmlspecialchars($equipo['nombre_categoria']) ?></span></li>
                     <li class="list-group-item py-2"><strong>Marca:</strong> <span class="fw-light"><?= htmlspecialchars($equipo['marca']) ?></span></li>
                     <li class="list-group-item py-2"><strong>Modelo:</strong> <span class="fw-light"><?= htmlspecialchars($equipo['modelo']) ?></span></li>
                     <li class="list-group-item py-2"><strong>Serie:</strong> <span class="fw-light"><?= htmlspecialchars($equipo['serie']) ?></span></li>
@@ -28,4 +44,5 @@
         </p>
     </div>
 </body>
+
 </html>
