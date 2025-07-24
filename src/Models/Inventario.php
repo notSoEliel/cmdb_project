@@ -176,4 +176,26 @@ class Inventario extends BaseModel
         // Ejecutar la consulta usando Database::getInstance()->query()
         return Database::getInstance()->query($sql, $seriesToCheck)->get();
     }
+
+    /**
+     * Obtiene un resumen del inventario agrupado por categoría.
+     * Calcula el total de equipos, cuántos están asignados y cuántos disponibles.
+     *
+     * @return array Un array con los datos del resumen.
+     */
+    public function getSummaryByCategory(): array
+    {
+        // Se añade la cláusula WHERE para excluir los equipos que ya no están activos.
+        $sql = "SELECT 
+                    c.nombre AS categoria,
+                    COUNT(i.id) AS total_equipos,
+                    SUM(CASE WHEN i.estado = 'Asignado' THEN 1 ELSE 0 END) AS equipos_asignados
+                FROM categorias c
+                LEFT JOIN inventario i ON c.id = i.categoria_id
+                WHERE i.estado NOT IN ('Donado', 'En Descarte') OR i.id IS NULL
+                GROUP BY c.nombre
+                ORDER BY c.nombre ASC";
+
+        return Database::getInstance()->query($sql)->get();
+    }
 }

@@ -49,6 +49,12 @@ $current_route = $_GET['route'] ?? 'home';
                     Usuarios Admin
                 </a>
             </li>
+            <li>
+                <a href="<?= BASE_URL ?>index.php?route=reportes" class="nav-link text-white <?= $current_route === 'reportes' ? 'active' : '' ?>">
+                    <i class="bi bi-graph-up-arrow me-2"></i>
+                    Reportes
+                </a>
+            </li>
         <?php endif; ?>
 
         <?php if ($userRole === 'colaborador'): ?>

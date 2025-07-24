@@ -51,7 +51,6 @@ abstract class BaseController
                     'uploadImage',
                     'destroyImage',
                     'setThumbnail',
-                    'exportToExcel',
                     'showAddForm',
                     'batchStore',
                     'checkSerialUniqueness',
@@ -63,6 +62,7 @@ abstract class BaseController
                 'usuarios' => ['index', 'store', 'update'],
                 'admin_profile' => ['index', 'updatePassword'],
                 'necesidades' => ['adminIndex', 'showUpdateForm', 'updateStatus'],
+                'reportes'      => ['index', 'exportarAsignaciones', 'exportarResumen', 'exportarDetalladoPorCategoria'],
             ],
             'colaborador' => [
                 'portal' => ['index', 'misEquipos', 'showProfile', 'updateLocation', 'updatePassword', 'showEquipoImages', 'reportarDano'],

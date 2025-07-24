@@ -103,4 +103,27 @@ class Asignacion
 
         return $result['COUNT(*)'] > 0;
     }
+
+    /**
+     * Obtiene un listado detallado de todas las asignaciones activas.
+     * Esta es la consulta para el reporte.
+     *
+     * @return array
+     */
+    public function findActiveAssignments(): array
+    {
+        $sql = "SELECT 
+                    i.nombre_equipo, i.serie,
+                    CONCAT(co.nombre, ' ', co.apellido) as nombre_colaborador,
+                    co.departamento, a.fecha_asignacion
+                FROM asignaciones a
+                JOIN inventario i ON a.inventario_id = i.id
+                JOIN colaboradores co ON a.colaborador_id = co.id
+                WHERE a.fecha_devolucion IS NULL 
+                AND i.estado NOT IN ('Donado', 'En Descarte')
+                ORDER BY a.fecha_asignacion DESC";
+
+        // Nos aseguramos de que el método get() devuelva un array de arrays.
+        return Database::getInstance()->query($sql)->get();
+    }
 }

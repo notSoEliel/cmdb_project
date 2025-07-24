@@ -626,60 +626,6 @@ class InventarioController extends BaseController
     }
 
     /**
-     * Exporta los datos del inventario a un archivo Excel.
-     */
-    public function exportToExcel()
-    {
-        // 1. Obtener TODOS los datos, sin paginación
-        $inventarioModel = new Inventario();
-        $options = $_GET;
-        $options['paginate'] = false; // Le decimos al modelo que no pagine
-        // Filtro permanente para excluir equipos no activos del reporte
-        $options['filters']['i.estado'] = ['NOT IN', 'Donado', 'En Descarte'];
-        $inventarios = $inventarioModel->findAll($options);
-
-        // 2. Crear el objeto Spreadsheet
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Inventario');
-
-        // 3. Añadir los encabezados
-        $sheet->setCellValue('A1', 'ID');
-        $sheet->setCellValue('B1', 'Equipo');
-        $sheet->setCellValue('C1', 'Categoría');
-        $sheet->setCellValue('D1', 'Marca');
-        $sheet->setCellValue('E1', 'Modelo');
-        $sheet->setCellValue('F1', 'Serie');
-        $sheet->setCellValue('G1', 'Estado');
-        $sheet->setCellValue('H1', 'Asignado a');
-        $sheet->setCellValue('I1', 'Fecha de Ingreso');
-
-        // 4. Llenar el archivo con los datos
-        $rowNumber = 2;
-        foreach ($inventarios as $item) {
-            $sheet->setCellValue('A' . $rowNumber, $item['id']);
-            $sheet->setCellValue('B' . $rowNumber, $item['nombre_equipo']);
-            $sheet->setCellValue('C' . $rowNumber, $item['nombre_categoria']);
-            $sheet->setCellValue('D' . $rowNumber, $item['marca']);
-            $sheet->setCellValue('E' . $rowNumber, $item['modelo']);
-            $sheet->setCellValue('F' . $rowNumber, $item['serie']);
-            $sheet->setCellValue('G' . $rowNumber, $item['estado']);
-            $sheet->setCellValue('H' . $rowNumber, $item['nombre_colaborador']);
-            $sheet->setCellValue('I' . $rowNumber, $item['fecha_ingreso']);
-            $rowNumber++;
-        }
-
-        // 5. Enviar el archivo al navegador para su descarga
-        $writer = new Xlsx($spreadsheet);
-        $fileName = 'Reporte_Inventario_' . date('Y-m-d') . '.xlsx';
-
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="' . urlencode($fileName) . '"');
-        $writer->save('php://output');
-        exit;
-    }
-
-    /**
      * Genera y muestra una imagen de código QR para un equipo.
      */
 

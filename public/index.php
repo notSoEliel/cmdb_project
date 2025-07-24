@@ -37,6 +37,7 @@ use App\Controllers\NecesidadController;
 use App\Controllers\PortalController;
 use App\Controllers\UsuarioController;
 use App\Controllers\AdminProfileController;
+use App\Controllers\ReporteController;
 use App\Controllers\PublicController;
 
 // Mapa de rutas válidas de la aplicación
@@ -46,6 +47,7 @@ $validRoutes = [
     'forgot-password' => AuthController::class,
     'reset-password' => AuthController::class,
     'admin_profile' => AdminProfileController::class,
+    'reportes'      => ReporteController::class,
     'portal'        => PortalController::class,
     'necesidades'   => NecesidadController::class,
     'usuarios'      => UsuarioController::class,

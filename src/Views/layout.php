@@ -23,7 +23,7 @@
     </button>
 
     <!-- Sidebar -->
-   <?php require_once 'partials/sidebar.php'; ?>
+    <?php require_once 'partials/sidebar.php'; ?>
 
     <!-- Overlay (ahora justo después del sidebar, para poder usar + si quisieras) -->
     <div class="sidebar-overlay d-lg-none"></div>
@@ -76,6 +76,7 @@
     </script>
 
     <?= $validationScript ?? '' ?>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <?= $validationScript ?? '' ?>
     <script src="<?= BASE_URL ?>js/app.js"></script>
 </body>
 

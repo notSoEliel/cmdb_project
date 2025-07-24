@@ -22,9 +22,6 @@
         <a href="index.php?route=inventario&action=showAddForm" class="btn btn-primary me-2">
             <i class="bi bi-plus-circle-fill me-2"></i>Añadir Nuevo Equipo
         </a>
-        <a href="index.php?route=inventario&action=exportToExcel" class="btn btn-success">
-            <i class="bi bi-file-earmark-excel-fill me-2"></i>Exportar a Excel
-        </a>
     </div>
 </div>
 
