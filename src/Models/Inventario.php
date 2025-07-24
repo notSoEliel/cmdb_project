@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Core\Database; // Asegúrate de que esta línea esté presente
+use App\Core\Database;
 
 /**
  * Modelo Inventario
@@ -121,7 +121,7 @@ class Inventario extends BaseModel
      * @param array $excludeCategoryIds IDs de categorías a excluir de la búsqueda (ej. [3] para "Clave de Software").
      * @return int El número más alto encontrado, o 0 si no hay coincidencias con el prefijo o globalmente.
      */
-     public function findLastSerialNumber($prefix = '', array $excludeCategoryIds = []): int
+    public function findLastSerialNumber($prefix = '', array $excludeCategoryIds = []): int
     {
         $db = Database::getInstance();
         $lastNumericValue = 0;
@@ -236,5 +236,65 @@ class Inventario extends BaseModel
                 ORDER BY c.nombre ASC";
 
         return Database::getInstance()->query($sql)->get();
+    }
+
+    /**
+     * Obtiene el conteo total de todos los equipos en el inventario, sin importar su estado.
+     * @return int
+     */
+    public function countAll(): int
+    {
+        $sql = "SELECT COUNT(*) FROM {$this->tableName}";
+        $result = Database::getInstance()->query($sql)->find();
+        return $result['COUNT(*)'] ?? 0;
+    }
+
+    /**
+     * Obtiene el conteo total de equipos para un estado específico.
+     * @param string $estado El estado del equipo (ej. 'Asignado', 'Disponible', 'Donado', 'En Descarte').
+     * @return int El número de equipos en ese estado.
+     */
+    public function countByEstado(string $estado): int
+    {
+        $sql = "SELECT COUNT(*) FROM {$this->tableName} WHERE estado = :estado";
+        $result = Database::getInstance()->query($sql, ['estado' => $estado])->find();
+        return $result['COUNT(*)'] ?? 0;
+    }
+
+    /**
+     * Obtiene el conteo total de equipos en estados de "problema" (En Reparación, Dañado).
+     * @return int
+     */
+    public function countProblemas(): int
+    {
+        $sql = "SELECT COUNT(*) FROM {$this->tableName} WHERE estado IN ('En Reparación', 'Dañado')";
+        $result = Database::getInstance()->query($sql)->find();
+        return $result['COUNT(*)'] ?? 0;
+    }
+
+    /**
+     * Cuenta equipos cuya vida útil ha expirado.
+     * @return int
+     */
+    public function countExpirados(): int
+    {
+        $sql = "SELECT COUNT(*) FROM {$this->tableName} WHERE DATE_ADD(fecha_ingreso, INTERVAL tiempo_depreciacion_anios YEAR) < CURDATE()";
+        $result = Database::getInstance()->query($sql)->find();
+        return $result['COUNT(*)'] ?? 0;
+    }
+
+    /**
+     * Cuenta equipos cuya vida útil expirará pronto (ej. en los próximos 6 meses).
+     * Excluye los ya expirados.
+     * @param int $monthsAhead Número de meses a futuro para considerar "por expirar".
+     * @return int
+     */
+    public function countPorExpirar(int $monthsAhead = 6): int
+    {
+        $sql = "SELECT COUNT(*) FROM {$this->tableName}
+            WHERE DATE_ADD(fecha_ingreso, INTERVAL tiempo_depreciacion_anios YEAR) >= CURDATE()
+            AND DATE_ADD(fecha_ingreso, INTERVAL tiempo_depreciacion_anios YEAR) <= DATE_ADD(CURDATE(), INTERVAL :months_ahead MONTH)";
+        $result = Database::getInstance()->query($sql, ['months_ahead' => $monthsAhead])->find();
+        return $result['COUNT(*)'] ?? 0;
     }
 }

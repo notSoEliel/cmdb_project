@@ -92,4 +92,16 @@ class Necesidad extends BaseModel
         ]);
         return true;
     }
+
+    /**
+     * Cuenta el número de solicitudes por un estado específico.
+     * @param string $status El estado de la solicitud (ej. 'Solicitado', 'Aprobado', 'Rechazado', 'Completado').
+     * @return int
+     */
+    public function countByEstado(string $status): int
+    {
+        $sql = "SELECT COUNT(*) FROM {$this->tableName} WHERE estado = :estado";
+        $result = Database::getInstance()->query($sql, ['estado' => $status])->find();
+        return $result['COUNT(*)'] ?? 0;
+    }
 }

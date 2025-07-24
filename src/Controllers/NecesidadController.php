@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\Necesidad;
 
+
 /**
  * Class NecesidadController
  * Gestiona la lógica para las solicitudes de necesidades.
