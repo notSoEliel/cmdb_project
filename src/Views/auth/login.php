@@ -223,6 +223,8 @@
             });
         });
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <?php
     if (isset($_SESSION['mensaje_sa2'])) {
         $mensaje = json_encode($_SESSION['mensaje_sa2']);
