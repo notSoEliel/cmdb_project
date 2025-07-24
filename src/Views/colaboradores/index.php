@@ -30,32 +30,32 @@ if (isset($_GET['editar_id']) && !empty($_GET['editar_id'])) {
             <div class="row g-3">
                 <div class="col-md-6 form-group">
                     <label class="form-label" for="nombre">Nombre</label>
-                    <input id="nombre" type="text" class="form-control" name="nombre" value="<?= htmlspecialchars($colaboradorActual['nombre'] ?? '') ?>">
+                    <input id="nombre" type="text" class="form-control" name="nombre" value="<?= htmlspecialchars($colaboradorActual['nombre'] ?? '') ?>" required>
                 </div>
                 <div class="col-md-6 form-group">
                     <label class="form-label" for="apellido">Apellido</label>
-                    <input id="apellido" type="text" class="form-control" name="apellido" value="<?= htmlspecialchars($colaboradorActual['apellido'] ?? '') ?>">
+                    <input id="apellido" type="text" class="form-control" name="apellido" value="<?= htmlspecialchars($colaboradorActual['apellido'] ?? '') ?>" required>
                 </div>
                 <div class="col-md-6 form-group">
                     <label class="form-label" for="departamento">Departamento</label>
-                    <input id="departamento" type="text" class="form-control" name="departamento" value="<?= htmlspecialchars($colaboradorActual['departamento'] ?? '') ?>">
+                    <input id="departamento" type="text" class="form-control" name="departamento" value="<?= htmlspecialchars($colaboradorActual['departamento'] ?? '') ?>" required>
                 </div>
                 <div class="col-md-6 form-group">
                     <label class="form-label" for="identificacion_unica">ID Único</label>
-                    <input id="identificacion_unica" type="text" class="form-control" name="identificacion_unica" value="<?= htmlspecialchars($colaboradorActual['identificacion_unica'] ?? '') ?>">
+                    <input id="identificacion_unica" type="text" class="form-control" name="identificacion_unica" value="<?= htmlspecialchars($colaboradorActual['identificacion_unica'] ?? '') ?>" required>
                 </div>
                 <div class="col-md-6 form-group">
                     <label class="form-label" for="email">Email</label>
-                    <input id="email" type="email" class="form-control" name="email" value="<?= htmlspecialchars($colaboradorActual['email'] ?? '') ?>">
+                    <input id="email" type="email" class="form-control" name="email" value="<?= htmlspecialchars($colaboradorActual['email'] ?? '') ?>" required>
                 </div>
                 <div class="col-md-6 form-group">
                     <label class="form-label" for="telefono">Teléfono</label>
-                    <input id="telefono" type="tel" class="form-control" name="telefono" placeholder="Formato: 6123-4567 o 213-4567" value="<?= htmlspecialchars($colaboradorActual['telefono'] ?? '') ?>">
+                    <input id="telefono" type="tel" class="form-control" name="telefono" placeholder="Formato: 6123-4567 o 213-4567" value="<?= htmlspecialchars($colaboradorActual['telefono'] ?? '') ?>" required>
                 </div>
                 <div class="col-md-6 form-group">
                     <label class="form-label" for="ip_asignada">Dirección IP Asignada</label>
                     <div class="input-group">
-                        <input id="ip_asignada" type="text" class="form-control" name="ip_asignada" value="<?= htmlspecialchars($colaboradorActual['ip_asignada'] ?? '') ?>">
+                        <input id="ip_asignada" type="text" class="form-control" name="ip_asignada" value="<?= htmlspecialchars($colaboradorActual['ip_asignada'] ?? '') ?>" required>
                         <button class="btn btn-outline-secondary" type="button" id="btn-generate-ip" title="Generar IP Aleatoria">
                             <i class="bi bi-dice-5"></i>
                         </button>
@@ -63,7 +63,7 @@ if (isset($_GET['editar_id']) && !empty($_GET['editar_id'])) {
                 </div>
                 <div class="col-md-6 form-group">
                     <label class="form-label" for="ubicacion">Ubicación</label>
-                    <input id="ubicacion" type="text" class="form-control" name="ubicacion" value="<?= htmlspecialchars($colaboradorActual['ubicacion'] ?? '') ?>">
+                    <input id="ubicacion" type="text" class="form-control" name="ubicacion" value="<?= htmlspecialchars($colaboradorActual['ubicacion'] ?? '') ?>" required>
                 </div>
                 <div class="col-md-6 form-group">
                     <label class="form-label" for="foto_perfil">Foto de Perfil</label>

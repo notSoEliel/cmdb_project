@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupPasswordToggle('current_password', 'toggleCurrentPassword');
     setupPasswordToggle('new_password', 'toggleNewPassword');
     setupPasswordToggle('confirm_password', 'toggleConfirmPassword');
+    setupPasswordToggle('password', 'togglePassword'); // Added for collaborator/user forms
 
     // --- Lógica para el modal de NOTAS en la tabla de inventario ---
     const notesModal = document.getElementById('notesModal');
@@ -133,12 +134,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         for (const fieldName in processedRules) {
             // 1. Procesar la propiedad 'required' directamente si existe
-            if (processedRules[fieldName].required) {
+            if (processedRules[fieldName] && processedRules[fieldName].required) { // Added check for processedRules[fieldName] existence
                 processProperty(processedRules[fieldName], 'required');
             }
 
             // 2. Procesar propiedades dentro de 'remote.data' (lógica ya existente)
-            if (processedRules[fieldName].remote && processedRules[fieldName].remote.data) {
+            if (processedRules[fieldName] && processedRules[fieldName].remote && processedRules[fieldName].remote.data) { // Added check for existence
                 for (const paramName in processedRules[fieldName].remote.data) {
                     processProperty(processedRules[fieldName].remote.data, paramName);
                 }
@@ -172,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-    // --- Inicialización de jQuery Validate para el formulario unificado ---
+    // --- Inicialización de jQuery Validate para todos los formularios ---
     if (typeof jQuery !== 'undefined' && typeof jQuery.validator !== 'undefined' && typeof validationRules !== 'undefined') {
         // Añadir métodos de validación personalizados si no existen (deben ser los mismos que antes)
         if (!jQuery.validator.methods.phonePA) {
@@ -203,64 +204,70 @@ document.addEventListener('DOMContentLoaded', function() {
             }, jQuery.validator.messages.date);
         }
 
-        // El ID del formulario principal ahora es 'form-inventario-form'
-        const formId = 'form-inventario-form';
-        if (document.getElementById(formId)) {
-            const processedRules = parseJQueryValidateRules(validationRules[formId].rules);
+        // Loop through all form IDs in validationRules and initialize them
+        for (const formKey in validationRules) {
+            if (document.getElementById(formKey)) {
+                const rulesToApply = parseJQueryValidateRules(validationRules[formKey].rules);
+                const messagesToApply = validationRules[formKey].messages;
 
-            jQuery('#' + formId).validate({
-                rules: processedRules,
-                messages: validationRules[formId].messages,
-                errorElement: 'div',
-                errorClass: 'text-danger form-text',
-                errorPlacement: function(error, element) {
-                    if (element.parent().hasClass('input-group')) {
-                        error.insertAfter(element.parent());
-                    } else if (element.hasClass('form-select')) {
-                        error.insertAfter(element.next('span.select2-container'));
+                // Special handling for 'form-colaborador' password field
+                if (formKey === 'form-colaborador') {
+                    const isEditingColaborador = jQuery('#' + formKey + ' input[name="id"]').val() !== undefined && jQuery('#' + formKey + ' input[name="id"]').val() !== '';
+                    if (!isEditingColaborador) {
+                        // If creating a new collaborator, password is required
+                        rulesToApply.password = rulesToApply.password || {}; // Ensure it's an object
+                        rulesToApply.password.required = true;
+                        messagesToApply.password = messagesToApply.password || {}; // Ensure it's an object
+                        messagesToApply.password.required = 'La contraseña es obligatoria al crear un nuevo colaborador.';
                     } else {
-                        error.insertAfter(element);
-                    }
-                },
-                highlight: function(element) {
-                    jQuery(element).addClass('is-invalid').removeClass('is-valid');
-                },
-                unhighlight: function(element) {
-                    jQuery(element).removeClass('is-invalid').addClass('is-valid');
-                },
-                submitHandler: function(form) {
-                    form.submit();
-                }
-            });
-
-            // Lógica condicional para notas_donacion en form-inventario-form (solo en edición)
-            const isEditing = jQuery('#' + formId + ' input[name="id"]').val() !== undefined && jQuery('#' + formId + ' input[name="id"]').val() !== '';
-            if (formId === 'form-inventario-form' && isEditing) {
-                const estadoSelect = document.getElementById('estado');
-                if (estadoSelect) {
-                    jQuery(estadoSelect).on('change', function() {
-                        const estado = jQuery(this).val();
-                        if (estado === 'Donado' || estado === 'En Descarte') {
-                            jQuery('#notas_donacion').rules('add', {
-                                required: true,
-                                messages: {
-                                    required: 'Las notas de donación/descarte son obligatorias para el estado seleccionado.'
-                                }
-                            });
-                        } else {
-                            jQuery('#notas_donacion').rules('remove', 'required');
+                        // If editing, password is not required if left blank
+                        if (rulesToApply.password) {
+                            delete rulesToApply.password.required;
                         }
-                    });
-                    const initialEstado = jQuery(estadoSelect).val();
-                    if (initialEstado === 'Donado' || initialEstado === 'En Descarte') {
-                        jQuery('#notas_donacion').rules('add', {
-                            required: true,
-                            messages: {
-                                required: 'Las notas de donación/descarte son obligatorias para el estado seleccionado.'
-                            }
-                        });
                     }
                 }
+
+                // Special handling for 'form-usuario' password field
+                if (formKey === 'form-usuario') {
+                    const isEditingUsuario = jQuery('#' + formKey + ' input[name="id"]').val() !== undefined && jQuery('#' + formKey + ' input[name="id"]').val() !== '';
+                    if (!isEditingUsuario) {
+                        // If creating a new user, password is required
+                        rulesToApply.password = rulesToApply.password || {};
+                        rulesToApply.password.required = true;
+                        messagesToApply.password = messagesToApply.password || {};
+                        messagesToApply.password.required = 'La contraseña es obligatoria al crear un nuevo usuario.';
+                    } else {
+                        // If editing, password is not required if left blank
+                        if (rulesToApply.password) {
+                            delete rulesToApply.password.required;
+                        }
+                    }
+                }
+
+                jQuery('#' + formKey).validate({
+                    rules: rulesToApply,
+                    messages: messagesToApply,
+                    errorElement: 'div',
+                    errorClass: 'text-danger form-text',
+                    errorPlacement: function(error, element) {
+                        if (element.parent().hasClass('input-group')) {
+                            error.insertAfter(element.parent());
+                        } else if (element.hasClass('form-select')) {
+                            error.insertAfter(element.next('span.select2-container'));
+                        } else {
+                            error.insertAfter(element);
+                        }
+                    },
+                    highlight: function(element) {
+                        jQuery(element).addClass('is-invalid').removeClass('is-valid');
+                    },
+                    unhighlight: function(element) {
+                        jQuery(element).removeClass('is-invalid').addClass('is-valid');
+                    },
+                    submitHandler: function(form) {
+                        form.submit();
+                    }
+                });
             }
         }
     }

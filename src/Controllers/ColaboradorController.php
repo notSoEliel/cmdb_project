@@ -86,7 +86,7 @@ class ColaboradorController extends BaseController
                 (new Colaborador())->save($_POST, $_FILES);
                 $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Colaborador creado.', 'icon' => 'success'];
             } catch (\Throwable $e) {
-                handleException($e); // <-- LLAMAMOS A NUESTRO HELPER
+                $_SESSION['mensaje_sa2'] = ['title' => '¡Error!', 'text' => $e->getMessage(), 'icon' => 'error'];
             }
             header('Location: ' . BASE_URL . 'index.php?route=colaboradores');
             exit;
@@ -103,7 +103,7 @@ class ColaboradorController extends BaseController
                 (new Colaborador())->save($_POST, $_FILES);
                 $_SESSION['mensaje_sa2'] = ['title' => '¡Éxito!', 'text' => 'Colaborador actualizado.', 'icon' => 'success'];
             } catch (\Throwable $e) {
-                handleException($e); // <-- LLAMAMOS A NUESTRO HELPER
+                $_SESSION['mensaje_sa2'] = ['title' => '¡Error!', 'text' => $e->getMessage(), 'icon' => 'error'];
             }
             header('Location: ' . BASE_URL . 'index.php?route=colaboradores');
             exit;

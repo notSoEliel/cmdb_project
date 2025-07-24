@@ -13,7 +13,7 @@ return [
             // La regla 'required' para 'password' se maneja dinámicamente en app.js
             'password' => ['minlength' => 8],
             'departamento' => ['required' => true],
-            'ip_asignada' => ['ipv4' => true],
+            'ip_asignada' => ['required' => true, 'ipv4' => true],
             'foto_perfil' => [
                 'accept' => 'image/jpeg, image/png'
             ],
@@ -27,7 +27,7 @@ return [
             'telefono' => ['required' => 'El teléfono es obligatorio.'],
             'password' => ['minlength' => 'La contraseña debe tener al menos 8 caracteres.'],
             'departamento' => ['required' => 'El departamento es obligatorio.'],
-            'ip_asignada' => ['ipv4' => 'La IP asignada debe ser una dirección IPv4 válida.'],
+            'ip_asignada' => ['required' => 'La IP asignada es obligatoria.', 'ipv4' => 'La IP asignada debe ser una dirección IPv4 válida.'],
             'foto_perfil' => [
                 'accept' => 'Solo se permiten archivos de imagen (jpg, png).'
             ]
