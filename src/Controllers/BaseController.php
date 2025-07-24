@@ -66,7 +66,7 @@ abstract class BaseController
             ],
             'colaborador' => [
                 'portal' => ['index', 'misEquipos', 'showProfile', 'updateLocation', 'updatePassword', 'showEquipoImages', 'reportarDano'],
-                'necesidades' => ['misSolicitudes', 'showForm', 'store'],
+                'necesidades' => ['misSolicitudes', 'showForm', 'save', 'showEditForm', 'destroy'],
             ]
         ];
 

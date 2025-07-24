@@ -16,12 +16,13 @@ $data = $tableConfig['data'];          // Los registros de la página actual.
 $pagination = $tableConfig['pagination'];  // Contiene toda la info de paginación.
 $actions = $tableConfig['actions'];      // Define las rutas para los botones de acción.
 $currentRoute = $_GET['route'] ?? '';
-$currentAction = $_GET['action'] ?? '';
+$currentAction = $_GET['action'] ?? 'index';
 
 // Preparamos TODOS los parámetros de la URL actual para que no se pierdan
 // al hacer clic en los enlaces de paginación o de ordenamiento.
 $queryParams = [
     'route' => $currentRoute,
+    'action' => $currentAction,
     'search' => $pagination['search'],
     'sort' => $pagination['sort'],
     'order' => $pagination['order'],
@@ -37,6 +38,7 @@ if (!empty($pagination['filters'])) {
     <div class="card-header">
         <form method="GET" class="row g-3 align-items-center">
             <input type="hidden" name="route" value="<?= htmlspecialchars($currentRoute) ?>">
+            <input type="hidden" name="action" value="<?= htmlspecialchars($currentAction) ?>">
 
             <div class="col-md-4">
                 <div class="input-group">
@@ -53,7 +55,8 @@ if (!empty($pagination['filters'])) {
                             <select name="<?= htmlspecialchars($filter['name']) ?>" class="form-select" onchange="this.form.submit()">
                                 <option value="">Todos</option>
                                 <?php foreach ($filter['options'] as $option) : ?>
-                                    <option value="<?= $option['id'] ?>" <?= (isset($_GET[$filter['name']]) && $_GET[$filter['name']] == $option['id']) ? 'selected' : '' ?>>
+                                    <option value="<?= $option['id'] ?>"
+                                        <?= (($pagination['filters'][$filter['name']] ?? 'abiertas') == $option['id']) ? 'selected' : '' ?>>
                                         <?= htmlspecialchars($option['nombre']) ?>
                                     </option>
                                 <?php endforeach; ?>
