@@ -28,6 +28,11 @@ $current_route = $_GET['route'] ?? 'home';
                 </a>
             </li>
             <li>
+                <a href="<?= BASE_URL ?>index.php?route=inventario&action=showDescartados" class="nav-link text-white <?= ($_GET['action'] ?? '') === 'showDescartados' ? 'active' : '' ?>">
+                    <i class="bi bi-trash-fill me-2"></i> Descartados
+                </a>
+            </li>
+            <li>
                 <a href="<?= BASE_URL ?>index.php?route=colaboradores" class="nav-link text-white <?= $current_route === 'colaboradores' ? 'active' : '' ?>">
                     <i class="bi bi-people me-2"></i> Colaboradores
                 </a>

@@ -57,6 +57,8 @@ abstract class BaseController
                     'showQrCode',
                     'showDonados',
                     'revertirDonacion',
+                    'showDescartados',
+                    'revertirDescarte',
                 ],
                 'colaboradores' => ['index', 'store', 'update'],
                 'categorias' => ['index', 'store', 'update', 'destroy'],

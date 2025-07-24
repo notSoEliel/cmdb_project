@@ -771,4 +771,81 @@ class InventarioController extends BaseController
             exit;
         }
     }
+
+    /**
+     * Muestra una vista filtrada únicamente con los equipos "En Descarte".
+     * Es idéntica a showDonados pero filtra por 'En Descarte'.
+     */
+    public function showDescartados()
+    {
+        // 1. Recopila parámetros de la URL para búsqueda, orden, etc.
+        $options = $_GET;
+        $page = (int)($_GET['page'] ?? 1);
+        $perPage = (int)($_GET['perPage'] ?? 10);
+
+        // 2. FUERZA el filtro para que solo muestre equipos con estado 'En Descarte'.
+        $options['filters']['i.estado'] = 'En Descarte';
+
+        // 3. Obtiene los datos usando la lógica del modelo que ya existe.
+        $inventarioModel = new Inventario();
+        $data = $inventarioModel->findAll($options);
+        $totalRecords = $inventarioModel->countFiltered($options);
+        $totalPages = ceil($totalRecords / $perPage);
+
+        // 4. Prepara la configuración para la tabla reutilizable.
+        $tableConfig = [
+            'columns' => [
+                ['header' => 'ID', 'field' => 'id', 'sort_by' => 'i.id'],
+                ['header' => 'Equipo', 'field' => 'nombre_equipo', 'sort_by' => 'i.nombre_equipo'],
+                ['header' => 'Categoría', 'field' => 'nombre_categoria', 'sort_by' => 'nombre_categoria'],
+                ['header' => 'Notas de Descarte', 'field' => 'notas_donacion'], // Se usa el mismo campo para notas
+                ['header' => 'Fecha Ingreso', 'field' => 'fecha_ingreso', 'sort_by' => 'i.fecha_ingreso'],
+            ],
+            'data' => $data,
+            'pagination' => [
+                'currentPage' => $page,
+                'perPage' => $perPage,
+                'totalPages' => $totalPages,
+                'totalRecords' => $totalRecords,
+                'search' => $_GET['search'] ?? '',
+                'sort' => $_GET['sort'] ?? 'id',
+                'order' => $_GET['order'] ?? 'desc',
+                'filters' => $options['filters']
+            ],
+            'actions' => [] // No hay acciones directas para los equipos descartados desde aquí
+        ];
+
+        // 5. Renderiza la nueva vista.
+        $this->render('Views/inventario/descartados.php', [
+            'pageTitle' => 'Inventario de Equipos Descartados',
+            'tableConfig' => $tableConfig
+        ]);
+    }
+
+    /**
+     * Revierte el estado de un equipo de 'En Descarte' a 'En Stock'.
+     * Es similar a revertirDonacion.
+     */
+    public function revertirDescarte()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = (int)$_POST['id'];
+            $inventarioModel = new Inventario();
+
+            $equipo = $inventarioModel->findById($id);
+
+            if ($equipo) {
+                $equipo['estado'] = 'En Stock';
+                $equipo['notas_donacion'] = null; // Limpia las notas de descarte
+
+                $inventarioModel->save($equipo);
+                $_SESSION['mensaje_sa2'] = ['title' => '¡Revertido!', 'text' => 'El equipo ha vuelto al inventario.', 'icon' => 'success'];
+            } else {
+                $_SESSION['mensaje_sa2'] = ['title' => 'Error', 'text' => 'No se encontró el equipo.', 'icon' => 'error'];
+            }
+
+            header('Location: ' . BASE_URL . 'index.php?route=inventario&action=showDescartados');
+            exit;
+        }
+    }
 }

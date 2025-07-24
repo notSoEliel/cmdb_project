@@ -167,6 +167,12 @@ if (!empty($pagination['filters'])) {
                                             <button type="submit" class="btn btn-sm btn-info" title="Revertir y devolver a Stock"><i class="bi bi-arrow-counterclockwise"></i></button>
                                         </form>
                                     <?php endif; ?>
+                                    <?php if ($currentAction === 'showDescartados'): ?>
+                                        <form action="?route=inventario&action=revertirDescarte" method="POST" class="d-inline">
+                                            <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-info" title="Revertir y devolver a Stock"><i class="bi bi-arrow-counterclockwise"></i></button>
+                                        </form>
+                                    <?php endif; ?>
                                     <?php if ($currentRoute === 'inventario') : ?>
                                         <a href="?route=inventario&action=showQrCode&id=<?= $row['id'] ?>" class="btn btn-sm btn-dark" title="Generar QR" target="_blank">
                                             <i class="bi bi-qr-code"></i>
