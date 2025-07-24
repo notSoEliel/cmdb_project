@@ -91,7 +91,7 @@ return [
             'cantidad' => ['required' => true, 'digits' => true, 'min' => 1],
             'prefijo_serie' => [
                 'maxlength' => 46, // 50 (max serie) - 4 (digitos) = 46
-                'pattern' => '^[a-zA-Z0-9\\s\\-_]*$' // Puede ser vacío, o alfanumérico
+                'pattern' => '^[a-zA-Z0-9\\s\\-_]+-$',
             ],
             'numero_inicio_serie' => ['required' => true, 'digits' => true, 'min' => 0],
             'nombre_equipo' => ['required' => true],
@@ -111,7 +111,7 @@ return [
             ],
             'prefijo_serie' => [
                 'maxlength' => 'El prefijo de serie es demasiado largo (máximo 46 caracteres).',
-                'pattern' => 'El prefijo de serie contiene caracteres no permitidos.'
+                'pattern' => 'El prefijo de serie debe contener caracteres válidos y terminar con un guion (-).',
             ],
             'numero_inicio_serie' => [
                 'required' => 'El número inicial de serie es obligatorio.',

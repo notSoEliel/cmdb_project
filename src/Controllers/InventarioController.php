@@ -159,8 +159,18 @@ class InventarioController extends BaseController
         // Lógica para sugerir el siguiente número de serie solo si estamos en el formulario por lote
         if ($showBatchForm && !$isEditing) {
             $prefijo_serie = $_GET['prefijo_serie_sug'] ?? ''; // Obtener prefijo si viene de la URL (para re-sugerir)
-            $lastNum = $inventarioModel->findLastSerialNumber($prefijo_serie);
-            $suggestedNextSerialNumber = $lastNum + 1;
+            // ID de la categoría "Clave de Software" (AJUSTA ESTE VALOR AL ID REAL DE TU BD)
+            $softwareKeyCategoryId = 3; // Ejemplo: Asume que el ID para 'Clave de Software' es 3
+            $excludeCategoryIds = [$softwareKeyCategoryId]; // Categorías a excluir de la sugerencia
+
+            $lastNum = $inventarioModel->findLastSerialNumber($prefijo_serie, $excludeCategoryIds);
+
+            // Si el prefijo no se ha usado antes, sugerir 1 (o 0 si prefieres)
+            if ($prefijo_serie !== '' && $lastNum === 0) {
+                $suggestedNextSerialNumber = 1; // O 0, según tu preferencia
+            } else {
+                $suggestedNextSerialNumber = $lastNum + 1;
+            }
         }
 
         $this->render('Views/inventario/add_edit.php', [
@@ -346,6 +356,20 @@ class InventarioController extends BaseController
             try {
                 $inventarioModel = new Inventario();
                 $data = $_POST; // Datos del formulario
+
+                // 0. Validaciones Adicionales para Lote
+                // ID de la categoría "Clave de Software"
+                $softwareKeyCategoryId = 9;
+
+                if ((int)($data['categoria_id'] ?? 0) === $softwareKeyCategoryId) {
+                    throw new \Exception('No se permite la creación por lote para la categoría "Clave de Software".');
+                }
+
+                // Forzar que el prefijo de serie termine en guion si no está vacío
+                $data['prefijo_serie'] = trim($data['prefijo_serie'] ?? '');
+                if (!empty($data['prefijo_serie']) && substr($data['prefijo_serie'], -1) !== '-') {
+                    $data['prefijo_serie'] .= '-';
+                }
 
                 // 1. Saneamiento inicial (trim) para todos los campos de texto
                 $data['cantidad'] = (int)($data['cantidad'] ?? 0);

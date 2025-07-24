@@ -112,41 +112,78 @@ class Inventario extends BaseModel
 
 
     /**
-     * Busca el último número de serie numérico para un prefijo dado.
+     * Busca el último número de serie numérico para un prefijo dado, excluyendo ciertas categorías.
      * Utilizado para sugerir el siguiente número en la entrada por lote.
      * Intenta extraer la parte numérica al final del string.
      * Si no se encuentra un prefijo o no hay series que coincidan, busca el máximo global numérico.
      *
      * @param string $prefix Prefijo de serie (ej. "LAPTOP-").
+     * @param array $excludeCategoryIds IDs de categorías a excluir de la búsqueda (ej. [3] para "Clave de Software").
      * @return int El número más alto encontrado, o 0 si no hay coincidencias con el prefijo o globalmente.
      */
-    public function findLastSerialNumber($prefix = '')
+     public function findLastSerialNumber($prefix = '', array $excludeCategoryIds = []): int
     {
-        // Se utiliza Database::getInstance() directamente para la consulta
-        $sqlPrefix = "SELECT serie FROM " . $this->tableName . " WHERE serie LIKE :prefix ORDER BY serie DESC LIMIT 1";
-        $resultPrefix = Database::getInstance()->query($sqlPrefix, ['prefix' => $prefix . '%'])->find();
-        $lastSerialWithPrefix = $resultPrefix['serie'] ?? null;
+        $db = Database::getInstance();
         $lastNumericValue = 0;
+        $whereClause = "WHERE 1=1";
+        $params = [];
 
-        if ($lastSerialWithPrefix) {
-            if (preg_match('/(\d+)$/', $lastSerialWithPrefix, $matches)) {
-                $lastNumericValue = (int)$matches[1];
+        // Añadir exclusión de categorías si se proporcionan
+        if (!empty($excludeCategoryIds)) {
+            $categoryPlaceholders = [];
+            foreach ($excludeCategoryIds as $index => $catId) {
+                $placeholder = ":exclude_cat_{$index}";
+                $categoryPlaceholders[] = $placeholder;
+                $params[$placeholder] = $catId;
             }
+            $whereClause .= " AND categoria_id NOT IN (" . implode(',', $categoryPlaceholders) . ")";
         }
 
-        // Si no se encontró un número válido con el prefijo, o si el prefijo está vacío,
-        // intentamos encontrar el máximo global de series puramente numéricas.
-        if (empty($prefix) || $lastNumericValue === 0) {
-            $sqlGlobalMax = "SELECT serie FROM " . $this->tableName . " WHERE serie REGEXP '^[0-9]+$' ORDER BY CAST(serie AS UNSIGNED) DESC LIMIT 1";
-            $resultGlobalMax = Database::getInstance()->query($sqlGlobalMax)->find();
+        // Estrategia: Buscar por prefijo primero. Si el prefijo está vacío, usar el fallback global.
+        // Si el prefijo NO está vacío pero no encuentra nada, devuelve 0 para sugerir 1.
+
+        if (!empty($prefix)) {
+            // Si se proporciona un prefijo, buscar solo series que comiencen con ese prefijo.
+            $sqlPrefixed = "SELECT serie FROM " . $this->tableName . " {$whereClause} AND serie LIKE :prefix ORDER BY serie DESC LIMIT 1";
+            $params[':prefix'] = $prefix . '%';
+
+            $resultPrefixed = $db->query($sqlPrefixed, $params)->find();
+            $lastSerialPrefixed = $resultPrefixed['serie'] ?? null;
+
+            if ($lastSerialPrefixed) {
+                if (preg_match('/(\d+)$/', $lastSerialPrefixed, $matches)) {
+                    $lastNumericValue = (int)$matches[1];
+                }
+            }
+            // Si $prefix no está vacío y $lastNumericValue sigue siendo 0, significa que no se encontró ningún serial para ese prefijo,
+            // y el método devolverá 0, lo que llevará al controlador a sugerir 1 (o 0).
+        } else {
+            // Si el prefijo está vacío, usar el fallback global de series puramente numéricas.
+            $globalMaxParams = [];
+            $globalMaxWhereClause = "WHERE 1=1";
+
+            if (!empty($excludeCategoryIds)) {
+                $globalMaxCategoryPlaceholders = [];
+                foreach ($excludeCategoryIds as $index => $catId) {
+                    $placeholder = ":exclude_cat_global_{$index}";
+                    $globalMaxCategoryPlaceholders[] = $placeholder;
+                    $globalMaxParams[$placeholder] = $catId;
+                }
+                $globalMaxWhereClause .= " AND categoria_id NOT IN (" . implode(',', $globalMaxCategoryPlaceholders) . ")";
+            }
+
+            $sqlGlobalMax = "SELECT serie FROM " . $this->tableName . " {$globalMaxWhereClause} AND serie REGEXP '^[0-9]+$' ORDER BY CAST(serie AS UNSIGNED) DESC LIMIT 1";
+            $resultGlobalMax = $db->query($sqlGlobalMax, $globalMaxParams)->find();
             $lastGlobalSerial = $resultGlobalMax['serie'] ?? null;
+
             if ($lastGlobalSerial) {
-                $lastNumericValue = max($lastNumericValue, (int)$lastGlobalSerial);
+                $lastNumericValue = (int)$lastGlobalSerial; // No usar max() aquí, este es el valor base del fallback.
             }
         }
 
         return $lastNumericValue;
     }
+
 
 
     /**
@@ -175,7 +212,8 @@ class Inventario extends BaseModel
         $sql = "SELECT serie FROM " . $this->tableName . " WHERE serie IN (" . $placeholders . ")";
 
         // Ejecutar la consulta usando Database::getInstance()->query()
-        return Database::getInstance()->query($sql, $seriesToCheck)->get();
+        $results = Database::getInstance()->query($sql, $seriesToCheck)->get();
+        return array_column($results, 'serie'); // Extraemos solo los valores de la columna 'serie'
     }
 
     /**

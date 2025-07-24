@@ -2,3 +2,4 @@
 <h1 class="mt-2 mb-4"><?= $pageTitle ?? 'Equipos Donados' ?></h1>
 
 <?php require_once '../src/Views/partials/dynamic_table.php'; ?>
+<?php require_once '../src/Views/partials/notes_modal.php'; // Incluir el modal de notas reutilizable ?>

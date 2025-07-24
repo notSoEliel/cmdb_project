@@ -26,6 +26,7 @@
 </div>
 
 <?php require_once '../src/Views/partials/dynamic_table.php'; ?>
+<?php require_once '../src/Views/partials/notes_modal.php'; // Incluir el modal de notas reutilizable ?>
 
 <div class="modal fade" id="notesModal" tabindex="-1" aria-labelledby="notesModalLabel" aria-hidden="true">
     <div class="modal-dialog">
