@@ -184,7 +184,7 @@ class InventarioController extends BaseController
     {
         header('Content-Type: application/json');
         $serie = trim($_GET['serie'] ?? ''); // El nombre del campo que jQuery Validate envía
-        $id = (int)($_GET['id'] ?? 0); // El ID del equipo si estamos editando
+        $id = (int)($_GET['id'] ?? null); // El ID del equipo si estamos editando
 
         $inventarioModel = new Inventario();
 
@@ -215,7 +215,8 @@ class InventarioController extends BaseController
                 // 1. Saneamiento inicial (trim)
                 $data['serie'] = trim($data['serie'] ?? '');
                 $data['nombre_equipo'] = trim($data['nombre_equipo'] ?? '');
-                // ... y así para todos los campos de texto relevantes
+                $data['marca'] = trim($data['marca'] ?? '');
+                $data['modelo'] = trim($data['modelo'] ?? '');
 
                 // 2. Validaciones de datos (obligatorios, formato, rangos)
                 if (empty($data['nombre_equipo'])) {
@@ -274,7 +275,9 @@ class InventarioController extends BaseController
                 // 1. Saneamiento inicial (trim)
                 $data['serie'] = trim($data['serie'] ?? '');
                 $data['nombre_equipo'] = trim($data['nombre_equipo'] ?? '');
-                // ... y así para todos los campos de texto relevantes
+                $data['marca'] = trim($data['marca'] ?? '');
+                $data['modelo'] = trim($data['modelo'] ?? '');
+                $data['notas_donacion'] = trim($data['notas_donacion'] ?? '');
 
                 // 2. Validaciones de datos (obligatorios, formato, rangos)
                 if (empty($data['id'])) {

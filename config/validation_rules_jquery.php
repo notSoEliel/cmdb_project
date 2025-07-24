@@ -50,7 +50,7 @@ return [
                     'url' => BASE_URL . 'index.php?route=inventario&action=checkSerialUniqueness',
                     'type' => 'get',
                     'data' => [
-                        'id' => 'function() { return jQuery("#form-inventario input[name=\\"id\\"]").val(); }' // Pasa el ID del equipo para excluirlo en edición
+                        'id' => '__JS_FUNCTION__return jQuery("#form-inventario input[name=\\"id\\"]").val();' // Le decimos a JS que esto es una función. Pasa el ID del equipo para excluirlo en edición
                     ]
                 ]
             ],

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Vista para el formulario de añadir/editar equipos.
  *
@@ -100,12 +101,29 @@ $showBatchFormOnly = isset($_GET['form_action']) && $_GET['form_action'] === 'ba
                         </select>
                     </div>
 
-                    <div class="col-md-4 form-group"><label class="form-label" for="marca">Marca</label><input id="marca" type="text" class="form-control" name="marca" value="<?= htmlspecialchars($equipoActual['marca'] ?? '') ?>" required></div>
-                    <div class="col-md-4 form-group"><label class="form-label" for="modelo">Modelo</label><input id="modelo" type="text" class="form-control" name="modelo" value="<?= htmlspecialchars($equipoActual['modelo'] ?? '') ?>" required></div>
-                    <div class="col-md-4 form-group"><label class="form-label" for="serie">No. Serie</label><input id="serie" type="text" class="form-control" name="serie" value="<?= htmlspecialchars($equipoActual['serie'] ?? '') ?>" required></div>
-                    <div class="col-md-4 form-group"><label class="form-label" for="costo">Costo ($)</label><input id="costo" type="number" min="0" step="0.01" class="form-control" name="costo" value="<?= htmlspecialchars($equipoActual['costo'] ?? '0.00') ?>" required></div>
-                    <div class="col-md-4 form-group"><label class="form-label" for="fecha_ingreso">Fecha de Ingreso</label><input id="fecha_ingreso" type="date" class="form-control" name="fecha_ingreso" value="<?= htmlspecialchars($equipoActual['fecha_ingreso'] ?? '') ?>" required></div>
-                    <div class="col-md-4 form-group"><label class="form-label" for="tiempo_depreciacion_anios">Depreciación (Años)</label><input id="tiempo_depreciacion_anios" type="number" min="0" class="form-control" name="tiempo_depreciacion_anios" value="<?= htmlspecialchars($equipoActual['tiempo_depreciacion_anios'] ?? '0') ?>" required></div>
+                    <div class="col-md-4 form-group">
+                        <label class="form-label" for="marca">Marca</label>
+                        <input id="marca" type="text" class="form-control" name="marca" value="<?= htmlspecialchars($equipoActual['marca'] ?? '') ?>" required>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label class="form-label" for="modelo">Modelo</label>
+                        <input id="modelo" type="text" class="form-control" name="modelo" value="<?= htmlspecialchars($equipoActual['modelo'] ?? '') ?>" required></div>
+                    <div class="col-md-4 form-group">
+                        <label class="form-label" for="serie">No. Serie</label>
+                        <input id="serie" type="text" class="form-control" name="serie" value="<?= htmlspecialchars($equipoActual['serie'] ?? '') ?>" required>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label class="form-label" for="costo">Costo ($)</label>
+                        <input id="costo" type="number" min="0" step="0.01" class="form-control" name="costo" value="<?= htmlspecialchars($equipoActual['costo'] ?? '0.00') ?>" required>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label class="form-label" for="fecha_ingreso">Fecha de Ingreso</label>
+                        <input id="fecha_ingreso" type="date" class="form-control" name="fecha_ingreso" value="<?= htmlspecialchars($equipoActual['fecha_ingreso'] ?? '') ?>" required>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label class="form-label" for="tiempo_depreciacion_anios">Depreciación (Años)</label>
+                        <input id="tiempo_depreciacion_anios" type="number" min="0" class="form-control" name="tiempo_depreciacion_anios" value="<?= htmlspecialchars($equipoActual['tiempo_depreciacion_anios'] ?? '0') ?>" required>
+                    </div>
 
                     <?php if ($equipoActual) : // Solo mostrar estado y notas de donación/descarte en modo edición 
                     ?>
@@ -240,7 +258,7 @@ $showBatchFormOnly = isset($_GET['form_action']) && $_GET['form_action'] === 'ba
                 // Hacer una llamada AJAX a tu controlador
                 const response = await fetch(`index.php?route=inventario&action=showAddForm&form_action=batch&prefijo_serie_sug=${encodeURIComponent(prefix)}`);
                 const html = await response.text(); // Obtener el HTML completo de la respuesta
-                
+
                 // Crear un DOM temporal para analizar el HTML
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = html;

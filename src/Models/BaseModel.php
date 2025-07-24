@@ -125,7 +125,7 @@ abstract class BaseModel
                         $params[$placeholder] = $v;
                     }
                     if (!empty($placeholders)) {
-                         $whereConditions[] = "{$finalColumn} {$operator} (" . implode(',', $placeholders) . ")";
+                        $whereConditions[] = "{$finalColumn} {$operator} (" . implode(',', $placeholders) . ")";
                     }
                 } else {
                     // Se crea un nombre de placeholder limpio.

@@ -107,6 +107,30 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // --- NUEVA FUNCIÓN PARA PARSEAR REGLAS DE VALIDACIÓN CON CÓDIGO JS EMBEBIDO ---
+    function parseJQueryValidateRules(rules) {
+        // Hacemos una copia profunda para no modificar el objeto original en `validationRules`
+        // Esto es importante para que si tienes varias instancias de reglas, no se sobrescriban.
+        const processedRules = JSON.parse(JSON.stringify(rules));
+
+        for (const fieldName in processedRules) {
+            // Buscamos reglas con 'remote' y que tengan la propiedad 'data'
+            if (processedRules[fieldName].remote && processedRules[fieldName].remote.data) {
+                for (const paramName in processedRules[fieldName].remote.data) {
+                    const paramValue = processedRules[fieldName].remote.data[paramName];
+                    // Si el valor es una cadena y empieza con nuestro prefijo especial
+                    if (typeof paramValue === 'string' && paramValue.startsWith('__JS_FUNCTION__')) {
+                        const funcBody = paramValue.substring('__JS_FUNCTION__'.length); // Obtenemos solo el cuerpo de la función (sin el prefijo)
+                        // Convertimos la cadena en una función JavaScript real usando el constructor Function
+                        // Esto permite que el código JS que viene como string sea ejecutado.
+                        processedRules[fieldName].remote.data[paramName] = new Function(funcBody);
+                    }
+                }
+            }
+        }
+        return processedRules;
+    }
+
     // --- Inicialización de SweetAlert2 si hay un mensaje en la sesión ---
     const mensajeSa2 = JSON.parse(sessionStorage.getItem('mensaje_sa2'));
     if (mensajeSa2) {
@@ -165,8 +189,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         for (const formId in validationRules) {
             if (document.getElementById(formId)) { // Solo inicializar si el formulario existe en la página
+                // Procesa las reglas para convertir las cadenas de función en funciones reales
+                const processedRules = parseJQueryValidateRules(validationRules[formId].rules);
                 jQuery('#' + formId).validate({
-                    rules: validationRules[formId].rules,
+                    rules: processedRules,
                     messages: validationRules[formId].messages,
                     errorElement: 'div',
                     errorClass: 'text-danger form-text', // Añadir form-text para mejor estilo
@@ -191,11 +217,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Si el formulario es de colaborador o usuario
                     submitHandler: function(form) {
                         // Guardar mensaje SweetAlert para después de la redirección
-                        sessionStorage.setItem('mensaje_sa2', JSON.stringify({
-                            title: 'Procesando...',
-                            text: 'Guardando datos, por favor espera.',
-                            icon: 'info'
-                        }));
+                        // sessionStorage.setItem('mensaje_sa2', JSON.stringify({
+                        //     title: 'Procesando...',
+                        //     text: 'Guardando datos, por favor espera.',
+                        //     icon: 'info'
+                        // }));
                         form.submit(); // Enviar el formulario
                     }
                 });
