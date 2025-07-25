@@ -33,10 +33,14 @@
             <input type="hidden" name="id" value="<?= htmlspecialchars($equipoActual['id'] ?? '') ?>">
 
             <div class="row g-3">
-                <div class="col-md-4 form-group">
-                    <label class="form-label" for="cantidad">Cantidad de Equipos</label>
-                    <input type="number" class="form-control" id="cantidad" name="cantidad" min="1" value="<?= $isEditing ? 1 : 1 ?>" required>
-                </div>
+                <?php // Este bloque solo se mostrará si estamos CREANDO un nuevo equipo ?>
+                <?php if (!$isEditing) : ?>
+                    <div class="col-md-4 form-group">
+                        <label class="form-label" for="cantidad">Cantidad de Equipos</label>
+                        <input type="number" class="form-control" id="cantidad" name="cantidad" min="1" value="1" required>
+                    </div>
+                <?php endif; ?>
+
                 <div class="col-md-4 form-group">
                     <label class="form-label" for="prefijo_serie">Prefijo de Serie (Opcional)</label>
                     <input type="text" class="form-control" id="prefijo_serie" name="prefijo_serie" placeholder="Ej: LAPTOP-" value="<?= htmlspecialchars($equipoActual['prefijo_serie'] ?? '') ?>">
