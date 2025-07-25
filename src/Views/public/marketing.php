@@ -257,11 +257,6 @@ $maxDiff = max($diffs) ?: 1;
                                         <h5 class="card-title"><?= htmlspecialchars($post['title']) ?></h5>
                                         <p class="card-text text-muted mb-1"><small>Por <?= htmlspecialchars($post['author']) ?> - <?= (new DateTime($post['date']))->format('d/m/Y') ?></small></p>
                                         <p class="card-text"><?= htmlspecialchars($post['excerpt']) ?></p>
-                                        <!-- Barra de tiempo -->
-                                        <div class="timeline-bar mt-2">
-                                            <div class="timeline-fill" style="width: <?= $percent ?>%;"></div>
-                                        </div>
-                                        <small class="text-muted"><?= $diffDays ?> días desde publicación</small>
                                     </div>
                                 </div>
                             </div>
