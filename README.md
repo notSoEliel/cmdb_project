@@ -92,7 +92,9 @@ define('BASE_URL', "{$protocol}://{$host}{$script_path}/");
 
 ### 5️⃣ Configurar Permisos de Archivos
 
-Asegúrate de que la carpeta `public/uploads/` y sus subcarpetas (`inventario/`, `colaboradores/`) tengan permisos de escritura para el usuario de tu servidor web (ej. `www-data` en Linux, `daemon` en macOS).
+Asegúrate de que la carpeta `public/uploads/` y sus subcarpetas (`inventario/`, `colaboradores/`) tengan permisos de escritura para el usuario de tu servidor web.
+
+#### 🐧 **Linux / 🍎 macOS**
 
 ```bash
 sudo chown -R tu_usuario_servidor_web:tu_grupo_servidor_web public/uploads
@@ -100,7 +102,38 @@ sudo find public/uploads -type d -exec chmod 775 {} +
 sudo find public/uploads -type f -exec chmod 664 {} +
 ```
 
-> **Nota**: Reemplaza `tu_usuario_servidor_web` y `tu_grupo_servidor_web` con los valores correctos de tu sistema, ej. `daemon:daemon` para macOS.
+> **Nota**: Reemplaza `tu_usuario_servidor_web` y `tu_grupo_servidor_web` con los valores correctos de tu sistema, ej. `daemon:daemon` para macOS o `www-data:www-data` para Linux.
+
+#### 🪟 **Windows**
+
+**Para XAMPP en Windows:**
+
+1. **Método 1 - Interfaz Gráfica:**
+   - Haz clic derecho en la carpeta `public/uploads/`
+   - Selecciona "Propiedades" → "Seguridad" → "Editar"
+   - Añade permisos de "Control total" para los usuarios:
+     - `Everyone` (Todos)
+     - `IIS_IUSRS` (si usas IIS)
+     - `IUSR` (usuario de Internet)
+
+2. **Método 2 - Línea de Comandos (PowerShell como Administrador):**
+
+```powershell
+# Navegar al directorio del proyecto
+cd "C:\xampp\htdocs\tu_proyecto_cmdb"
+
+# Dar permisos completos a la carpeta uploads
+icacls "public\uploads" /grant Everyone:F /T
+icacls "public\uploads" /grant IIS_IUSRS:F /T
+icacls "public\uploads" /grant IUSR:F /T
+```
+
+**Para WAMP en Windows:**
+
+- WAMP generalmente ejecuta Apache con el usuario `SYSTEM`, por lo que los permisos estándar de Windows suelen ser suficientes
+- Si tienes problemas, aplica el mismo método que para XAMPP
+
+> **💡 Tip para Windows**: Si continúas teniendo problemas de permisos, puedes temporalmente dar permisos completos a la carpeta `uploads` para el usuario `Everyone`, aunque por seguridad se recomienda ser más específico en producción.
 
 ### 6️⃣ Acceder a la Aplicación
 
