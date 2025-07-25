@@ -407,9 +407,8 @@ $maxDiff = max($diffs) ?: 1;
                     btn.classList.add('active');
                     const cat = btn.dataset.cat;
                     cards.forEach(c => {
-                        c.style.display = (cat === 'all' || c.dataset.category === cat) ? '' : '';
+                        c.style.display = (cat === 'all' || c.dataset.category === cat) ? 'block' : 'none';
                     });
-                    addNotification(`Filtro aplicado: ${cat}`);
                 });
             });
 
