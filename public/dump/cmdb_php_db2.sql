@@ -20,6 +20,8 @@ SET time_zone = "+00:00";
 --
 -- Database: `cmdb_php_db2`
 --
+CREATE DATABASE IF NOT EXISTS `cmdb_php_db2`;
+USE `cmdb_php_db2`;
 
 -- --------------------------------------------------------
 
@@ -27,8 +29,6 @@ SET time_zone = "+00:00";
 -- Table structure for table `asignaciones`
 --
 
-CREATE DATABASE IF NOT EXISTS `cmdb_php_db2`;
-USE `cmdb_php_db2`;
 
 CREATE TABLE `asignaciones` (
   `id` int(11) NOT NULL,
@@ -229,7 +229,53 @@ INSERT INTO `inventario_imagenes` (`id`, `inventario_id`, `ruta_imagen`, `es_thu
 (2, 2, 'monitor_curvo.png', 1),
 (3, 16, 'laptop_basica.png', 1),
 (4, 19, 'monitor_oficina.png', 1),
-(5, 43, 'monitor_crt.png', 1);
+(5, 43, 'monitor_crt.png', 1),
+(6, 1, 'laptop_ejecutiva.png', 1),
+(7, 2, 'monitor_curvo.png', 1),
+(8, 3, 'impresora_laser.png', 1),
+(9, 4, 'telefono_ip_cisco.jpg', 1),
+(10, 5, 'switch_red.png', 1),
+(11, 6, 'software_diseño.jpg', 1),
+(12, 7, 'sillo_ergonomica.jpg', 1),
+(13, 8, 'sevidor_db.jpg', 1),
+(14, 9, 'auricularess_cancelacion.jpg', 1),
+(15, 10, 'teclado_mecanico.jpg', 1),
+(16, 11, 'camara_videollamada.jpg', 1),
+(17, 12, 'router_wifi.png', 1),
+(18, 13, 'ups.jpg', 1),
+(19, 14, 'software_crm.png', 1),
+(20, 15, 'tableta_grafica.jpg', 1),
+(21, 16, 'laptop_basica.png', 1),
+(22, 17, 'laptop_basica.png', 1),
+(23, 18, 'laptop_basica.png', 1),
+(24, 19, 'monitor_oficina.png', 1),
+(25, 20, 'monitor_oficina.png', 1),
+(26, 21, 'monitor_oficina.png', 1),
+(27, 22, 'monitor_oficina.png', 1),
+(28, 23, 'telefono_ip_basico.jpg', 1),
+(29, 24, 'telefono_ip_basico.jpg', 1),
+(30, 25, 'telefono_ip_basico.jpg', 1),
+(31, 26, 'telefono_ip_basico.jpg', 1),
+(32, 27, 'telefono_ip_basico.jpg', 1),
+(33, 28, 'mouse_optico.jpg', 1),
+(34, 29, 'mouse_optico.jpg', 1),
+(35, 30, 'mouse_optico.jpg', 1),
+(36, 31, 'mouse_optico.jpg', 1),
+(37, 32, 'mouse_optico.jpg', 1),
+(38, 33, 'teclado_estandar.png', 1),
+(39, 34, 'teclado_estandar.png', 1),
+(40, 35, 'teclado_estandar.png', 1),
+(41, 36, 'teclado_estandar.png', 1),
+(42, 37, 'teclado_estandar.png', 1),
+(43, 38, 'licencia_antivirus.png', 1),
+(44, 39, 'licencia_antivirus.png', 1),
+(45, 40, 'licencia_antivirus.png', 1),
+(46, 41, 'licencia_antivirus.png', 1),
+(47, 42, 'licencia_antivirus.png', 1),
+(48, 43, 'monitor_crt.png', 1),
+(49, 44, 'pc_obsoleta.jpg', 1),
+(50, 45, 'laptop_pruebas.jpg', 1),
+(51, 46, 'proyector_salab.jpg', 1);
 
 -- --------------------------------------------------------
 
@@ -409,7 +455,7 @@ ALTER TABLE `inventario`
 -- AUTO_INCREMENT for table `inventario_imagenes`
 --
 ALTER TABLE `inventario_imagenes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
 
 --
 -- AUTO_INCREMENT for table `necesidades`
