@@ -193,9 +193,9 @@
 
       <div class="card link-card shadow-sm">
         <i class="bi bi-info-circle text-secondary"></i>
-        <h6 class="card-title">Acerca del Sistema</h6>
-        <p class="card-text">Información sobre el CMDB y sus funcionalidades.</p>
-        <a href="#"
+        <h6 class="card-title">Noticias del Sistema</h6>
+        <p class="card-text">Entérate de lo último de nuestro sistema.</p>
+        <a href="index.php?route=public&action=showMarketingPage"
            class="btn btn-sm btn-secondary mt-2">Saber Más</a>
       </div>
     </div>

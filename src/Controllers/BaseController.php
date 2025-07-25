@@ -23,7 +23,7 @@ abstract class BaseController
         $action = $_GET['action'] ?? 'index';
 
         // 1. Definimos las rutas que son 100% públicas y no requieren login.
-        $publicRoutes = ['login', 'logout', 'forgot-password', 'public', 'reset-password'];
+        $publicRoutes = ['login', 'logout', 'forgot-password', 'public', 'reset-password', 'marketing'];
         if (in_array($route, $publicRoutes)) {
             return; // Si la ruta es pública, la ejecución continúa sin más comprobaciones.
         }

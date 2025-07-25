@@ -86,7 +86,6 @@ class Inventario extends BaseModel
         ];
 
         if ($currentId) {
-            // --- INICIO DE LA MODIFICACIÓN ---
             // MODO UPDATE: Se añaden 'estado' y 'notas_donacion' a los parámetros
             $params['id'] = $currentId;
             $params['estado'] = $data['estado']; // Se toma el estado del formulario

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Controllers;
 
 use App\Models\Inventario;
@@ -14,11 +15,19 @@ class PublicController
         if (!$equipo) {
             // Si no se encuentra, podemos mostrar un 404 simple.
             http_response_code(404);
-            echo "<h1>404 - Equipo no encontrado</h1>";
+            include '../src/Views/error-404.php';
             exit;
         }
 
         // Carga una vista simple, sin el layout del dashboard.
         require_once '../src/Views/public/details.php';
+    }
+
+    /**
+     * Muestra la página de mercadeo/noticias.
+     */
+    public function showMarketingPage()
+    {
+        require_once '../src/Views/public/marketing.php';
     }
 }

@@ -54,6 +54,7 @@ $validRoutes = [
     'home'          => DashboardController::class,
     'inventario'    => InventarioController::class,
     'public'        => PublicController::class,
+    'marketing'     => PublicController::class,
     'colaboradores' => ColaboradorController::class,
     'categorias'    => CategoriaController::class,
 ];

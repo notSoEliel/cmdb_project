@@ -199,6 +199,8 @@
                     </div>
                     <div class="text-center">
                         <a href="index.php?route=forgot-password&action=showForgotPasswordForm">¿Olvidaste tu contraseña?</a>
+                        <span class="mx-2">|</span>
+                        <a href="index.php?route=public&action=showMarketingPage">Portal de Noticias</a>
                     </div>
                 </form>
             </div>
