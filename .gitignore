@@ -87,11 +87,11 @@ composer.phar
 # You may choose to ignore a library lock file http://getcomposer.org/doc/02-libraries.md#lock-file
 # composer.lock
 
-# Ignore public/uploads/
+public/add_admins.php
+public/add_colaborators.php
+public/dump/dump1.sql
+public/dump/dump2.sql
 
-public/uploads/
-exec.txt
-temp.php
-temp2.php
+
 
 # End of https://www.toptal.com/developers/gitignore/api/composer
