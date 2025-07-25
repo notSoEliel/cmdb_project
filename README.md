@@ -141,10 +141,45 @@ Una vez configurado, accede a la aplicación desde tu navegador:
 
 **URL**: `http://localhost/tu_ruta_proyecto/public/`
 
-**Credenciales por defecto**:
+---
 
-- **Administrador**: `admin@cmdb.com` / `admin123`
-- **Colaborador**: `juan.perez@example.com` / `colaborador123` (y otros emails generados)
+## 🔐 Credenciales de Acceso
+
+El sistema viene con usuarios de prueba preconfigurados para facilitar las pruebas. Todos los usuarios utilizan contraseñas seguras hasheadas en la base de datos.
+
+### 👨‍💼 **Administradores del Sistema**
+
+| Nombre | Email | Contraseña |
+|--------|--------|------------|
+| Admin Principal | `admin@cmdb.com` | `admin123` |
+| Moderador Uno | `mod1@cmdb.com` | `admin123` |
+| Supervisor Dos | `sup2@cmdb.com` | `admin123` |
+| Gestor Tres | `gestor3@cmdb.com` | `admin123` |
+| Admin Cuatro | `admin4@cmdb.com` | `admin123` |
+
+### 👥 **Colaboradores del Sistema**
+
+| Nombre | Email | Departamento | Contraseña |
+|--------|--------|--------------|------------|
+| Juan Pérez | `juan.perez@example.com` | Marketing | `colaborador123` |
+| María García | `maria.garcia@example.com` | Ventas | `colaborador123` |
+| Carlos Rodríguez | `carlos.r@example.com` | IT | `colaborador123` |
+| Ana López | `ana.lopez@example.com` | Recursos Humanos | `colaborador123` |
+| Pedro Martínez | `pedro.m@example.com` | Finanzas | `colaborador123` |
+| Sofía Hernández | `sofia.h@example.com` | Logística | `colaborador123` |
+| Luis González | `luis.g@example.com` | Marketing | `colaborador123` |
+| Laura Díaz | `laura.d@example.com` | Ventas | `colaborador123` |
+| Fernando Sánchez | `fernando.s@example.com` | IT | `colaborador123` |
+| Elena Torres | `elena.t@example.com` | Recursos Humanos | `colaborador123` |
+| Miguel Ramírez | `miguel.r@example.com` | Finanzas | `colaborador123` |
+| Gabriela Flores | `gabriela.f@example.com` | Logística | `colaborador123` |
+| Ricardo Benítez | `ricardo.b@example.com` | Marketing | `colaborador123` |
+| Carmen Vargas | `carmen.v@example.com` | Ventas | `colaborador123` |
+| Andrés Silva | `andres.s@example.com` | IT | `colaborador123` |
+
+> **💡 Tip**: Para acceder como administrador, usa cualquier email de la tabla de administradores. Para acceder como colaborador, usa cualquier email de la tabla de colaboradores. Todos tienen acceso a diferentes funcionalidades según su rol.
+
+> **🔒 Seguridad**: En un entorno de producción, asegúrate de cambiar todas estas contraseñas por defecto y usar credenciales únicas y seguras.
 
 ---
 
