@@ -49,7 +49,7 @@ Esto creará la carpeta `vendor/` y el archivo `autoload.php` necesarios.
 
 #### a. Crear la Base de Datos
 
-Crea una base de datos MySQL/MariaDB con el nombre `cmdb_php_db`.
+Crea una base de datos MySQL/MariaDB con el nombre `cmdb_php_db2`.
 
 #### b. Configurar Conexión
 
@@ -64,32 +64,15 @@ define('DB_PASS', 'tu_contraseña_db'); // Ej: tu_contraseña_root
 define('DB_CHARSET', 'utf8mb4');
 ```
 
-#### c. Configurar la Base de Datos (Proceso en 3 Pasos)
+#### c. Importar Esquema y Datos Iniciales
 
-La configuración de la base de datos sigue un proceso específico de 3 pasos:
-
-**📋 Paso 1: Ejecutar el primer dump**
+Utiliza el script SQL completo para crear las tablas y poblar la base de datos con datos de prueba.
 
 1. Abre tu herramienta de base de datos (phpMyAdmin, MySQL Workbench, etc.)
-2. Selecciona la base de datos `cmdb_php_db`
-3. Ejecuta el contenido del archivo `public/dumps/dump1.sql`
+2. Selecciona la base de datos `cmdb_php_db2`
+3. Ejecuta el contenido del archivo `public/dumps/cmdb_php_db2.sql`
 
-> Este primer script crea la estructura básica de las tablas.
-
-**📋 Paso 2: Ejecutar los scripts de usuarios**
-Ejecuta los scripts PHP para crear usuarios y colaboradores:
-
-- **Para Administradores**: Navega a `http://localhost/tu_ruta_proyecto/public/add_admins.php`
-- **Para Colaboradores**: Navega a `http://localhost/tu_ruta_proyecto/public/add_collaborators.php`
-
-**📋 Paso 3: Ejecutar el segundo dump**
-
-1. Regresa a tu herramienta de base de datos
-2. Ejecuta el contenido del archivo `public/dumps/dump2.sql`
-
-> Este segundo script añade datos adicionales, relaciones y configuraciones que dependen de los usuarios creados en el paso anterior.
-
-> **⚠️ Importante**: Es crucial seguir este orden exacto para evitar errores de integridad referencial y asegurar que todas las relaciones se establezcan correctamente.
+> **💡 Tip**: Este script ya incluye toda la estructura de tablas, categorías, inventario, asignaciones, necesidades, usuarios administradores, colaboradores e imágenes de ejemplo. Es un dump completo listo para usar.
 
 ### 4️⃣ Configurar URL Base de la Aplicación
 
@@ -201,17 +184,13 @@ El proyecto sigue una arquitectura **MVC (Modelo-Vista-Controlador)** simplifica
 │   ├── 📁 css/                 # Hojas de estilo CSS
 │   │   └── style.css
 │   ├── 📁 dumps/               # Scripts SQL para inicializar la base de datos
-│   │   ├── dump1.sql        # Primer script: estructura de tablas
-│   │   └── dump2.sql        # Segundo script: datos adicionales y relaciones
+│   │   └── cmdb_php_db2.sql # Script completo: estructura y datos
 │   ├── 📁 js/                  # Archivos JavaScript
 │   │   └── app.js           # Lógica JS principal y validaciones
 │   ├── 📁 uploads/             # Directorio para archivos subidos
 │   │   ├── colaboradores/
 │   │   └── inventario/
-│   ├── index.php            # Punto de entrada de la aplicación (router)
-│   ├── add_admins.php       # Script para añadir usuarios administradores
-│   ├── add_collaborators.php # Script para añadir colaboradores
-│   └── seed_sample_data.php # Script para poblar la DB con datos de prueba
+│   └── index.php            # Punto de entrada de la aplicación (router)
 ├── 📁 src/                     # Código fuente de la aplicación
 │   ├── 📁 Controllers/         # Lógica de negocio y manejo de solicitudes
 │   │   ├── AdminProfileController.php
