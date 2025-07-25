@@ -25,7 +25,7 @@
         body.gradient-bg {
             margin: 0;
             min-height: 100vh;
-            background: linear-gradient(-45deg, #0d6efd, #6f42c1, #20c997);
+            background: linear-gradient(-45deg,rgb(157, 13, 253), #6f42c1,rgb(201, 32, 119));
             background-size: 400% 400%;
             animation: gradient 15s ease infinite;
             display: flex;
