@@ -76,7 +76,7 @@
     </script>
 
     <?= $validationScript ?? '' ?>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <?= $validationScript ?? '' ?>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="<?= BASE_URL ?>js/app.js"></script>
 </body>
 

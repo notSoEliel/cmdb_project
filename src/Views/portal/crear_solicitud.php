@@ -3,7 +3,7 @@
 
 <div class="card">
     <div class="card-body">
-        <form action="index.php?route=necesidades&action=store" method="POST">
+        <form action="index.php?route=necesidades&action=save" method="POST">
             <div class="mb-3">
                 <label for="descripcion" class="form-label">
                     <h5>¿Qué equipo o software necesitas?</h5>

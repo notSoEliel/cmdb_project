@@ -101,8 +101,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const newSuggestedValue = tempDiv.querySelector('#numero_inicio_serie').value;
 
+            console.log(`DEBUG JS: Valor sugerido obtenido del HTML temporal: ${newSuggestedValue}`);
+
             // Actualizar solo si la sugerencia es diferente o si el campo está vacío
             if (numeroInicioSerieInput.value === '' || parseFloat(numeroInicioSerieInput.value) < parseFloat(newSuggestedValue)) {
+                console.log(`DEBUG JS: Actualizando numeroInicioSerieInput.value a: ${newSuggestedValue}`);
                 numeroInicioSerieInput.value = newSuggestedValue;
             }
 
@@ -138,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 processProperty(processedRules[fieldName], 'required');
             }
 
-            // 2. Procesar propiedades dentro de 'remote.data' (lógica ya existente)
+            // 2. Procesar propiedades dentro de 'remote.data'
             if (processedRules[fieldName] && processedRules[fieldName].remote && processedRules[fieldName].remote.data) { // Added check for existence
                 for (const paramName in processedRules[fieldName].remote.data) {
                     processProperty(processedRules[fieldName].remote.data, paramName);
@@ -149,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return processedRules;
     }
 
-    // --- Inicialización de SweetAlert2 si hay un mensaje en la sesión (DEJAR ESTO TAL CUAL) ---
+    // --- Inicialización de SweetAlert2 si hay un mensaje en la sesión ---
     const mensajeSa2 = JSON.parse(sessionStorage.getItem('mensaje_sa2'));
     if (mensajeSa2) {
         Swal.fire({
@@ -215,9 +218,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     const isEditingColaborador = jQuery('#' + formKey + ' input[name="id"]').val() !== undefined && jQuery('#' + formKey + ' input[name="id"]').val() !== '';
                     if (!isEditingColaborador) {
                         // If creating a new collaborator, password is required
-                        rulesToApply.password = rulesToApply.password || {}; // Ensure it's an object
+                        rulesToApply.password = rulesToApply.password || {};
                         rulesToApply.password.required = true;
-                        messagesToApply.password = messagesToApply.password || {}; // Ensure it's an object
+                        messagesToApply.password = messagesToApply.password || {}
                         messagesToApply.password.required = 'La contraseña es obligatoria al crear un nuevo colaborador.';
                     } else {
                         // If editing, password is not required if left blank
@@ -244,6 +247,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
 
+                // Lógica condicional ESPECIAL para el formulario de inventario
+                if (formKey === 'form-inventario-form') { // Apuntamos al ID correcto del <form>
+                    // La miniatura es obligatoria solo si se cumplen ciertas condiciones
+                    const cantidad = parseInt($('#cantidad').val()) || 1;
+                    const isEditing = $('input[name="id"]').val() !== '';
+                    // Es requerido si la cantidad es > 1 Y no estamos editando.
+                    rulesToApply.imagen_miniatura = {
+                        accept: "image/jpeg, image/png, image/gif",
+                        required: function(element) {
+                            return cantidad > 1 && !isEditing;
+                        }
+                    };
+                }
+
+                // Inicializa el plugin jQuery Validate para el formulario
                 jQuery('#' + formKey).validate({
                     rules: rulesToApply,
                     messages: messagesToApply,

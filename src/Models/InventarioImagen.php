@@ -28,11 +28,11 @@ class InventarioImagen
      * @param string $ruta_imagen
      * @return bool
      */
-    public function save($inventario_id, $ruta_imagen)
+    public function save($inventario_id, $ruta_imagen, bool $es_thumbnail = false)
     {
-        $sql = "INSERT INTO inventario_imagenes (inventario_id, ruta_imagen) VALUES (:inventario_id, :ruta_imagen)";
-        Database::getInstance()->query($sql, ['inventario_id' => $inventario_id, 'ruta_imagen' => $ruta_imagen]);
-        return true;
+        $sql = "INSERT INTO inventario_imagenes (inventario_id, ruta_imagen, es_thumbnail) VALUES (:inventario_id, :ruta_imagen, :es_thumbnail)";
+        Database::getInstance()->query($sql, ['inventario_id' => $inventario_id, 'ruta_imagen' => $ruta_imagen, 'es_thumbnail' => (int)$es_thumbnail]);
+        return Database::getInstance()->lastInsertId();
     }
 
     /**

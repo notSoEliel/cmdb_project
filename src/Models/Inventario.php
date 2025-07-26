@@ -106,7 +106,11 @@ class Inventario extends BaseModel
         }
 
         Database::getInstance()->query($sql, $params);
-        return true;
+
+        if (!$currentId) {
+            return Database::getInstance()->lastInsertId();
+        }
+        return $currentId;
     }
 
 
@@ -180,7 +184,7 @@ class Inventario extends BaseModel
             }
         }
 
-        return $lastNumericValue;
+        return $lastNumericValue + 1;
     }
 
 

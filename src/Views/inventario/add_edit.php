@@ -29,7 +29,7 @@
         ?>
     </div>
     <div class="card-body">
-        <form id="form-inventario-form" method="POST" action="index.php?route=inventario&action=store">
+        <form id="form-inventario-form" method="POST" action="index.php?route=inventario&action=store" enctype="multipart/form-data">
             <input type="hidden" name="id" value="<?= htmlspecialchars($equipoActual['id'] ?? '') ?>">
 
             <div class="row g-3">

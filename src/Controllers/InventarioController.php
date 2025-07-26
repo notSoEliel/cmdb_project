@@ -182,6 +182,7 @@ class InventarioController extends BaseController
             } else {
                 $suggestedNextSerialNumber = $lastNum + 1;
             }
+             error_log("DEBUG PHP: SuggestedNextSerialNumber calculado: " . $suggestedNextSerialNumber);
         }
 
         $this->render('Views/inventario/add_edit.php', [
@@ -332,16 +333,23 @@ class InventarioController extends BaseController
                     }
 
                     // --- Lógica de subida y procesamiento de la miniatura ---
-                    $thumbnailFileName = null; // Inicializar a null
+                                       $thumbnailFileName = null; // Inicializar a null
+                    $isThumbnailUploaded = false; // Bandera para rastrear si la subida fue exitosa
 
-                    // Si hay un archivo de miniatura subido
+                    error_log("DEBUG: Procesando subida de miniatura para cantidad: " . $cantidad);
+                    error_log("DEBUG: Contenido de _FILES['imagen_miniatura']: " . print_r($_FILES['imagen_miniatura'] ?? 'No set', true));
+
+                    // Si hay un archivo de miniatura subido Y no hay errores de subida
                     if (isset($_FILES['imagen_miniatura']) && $_FILES['imagen_miniatura']['error'] === UPLOAD_ERR_OK) {
                         $imagen = $_FILES['imagen_miniatura'];
-                        $allowed_extensions = ['jpg', 'jpeg', 'png'];
+                        $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp']; // Agregado 'webp'
                         $file_extension = strtolower(pathinfo($imagen['name'], PATHINFO_EXTENSION));
 
+                        error_log("DEBUG: Archivo subido detectado. Extensión: " . $file_extension);
+
                         if (!in_array($file_extension, $allowed_extensions)) {
-                            throw new \Exception('Solo se permiten imágenes (jpg, jpeg, png) para la miniatura.');
+                            error_log("ERROR: Extensión de archivo no permitida: " . $file_extension . " [SOURCE: ERR_EXT_NOT_ALLOWED]");
+                            throw new \Exception('Solo se permiten imágenes (jpg, jpeg, png, gif, webp) para la miniatura. [SOURCE: ERR_EXT_NOT_ALLOWED]');
                         }
 
                         $uploadDir = '../public/uploads/inventario/';
@@ -349,11 +357,22 @@ class InventarioController extends BaseController
                         $thumbnailFileName = uniqid() . '-' . basename($imagen['name']);
                         $targetPath = $uploadDir . $thumbnailFileName;
 
-                        if (!move_uploaded_file($imagen['tmp_name'], $targetPath)) {
-                            throw new \Exception('No se pudo subir la miniatura. Revisa los permisos de la carpeta de uploads.');
+                        if (move_uploaded_file($imagen['tmp_name'], $targetPath)) {
+                            $isThumbnailUploaded = true; // La subida fue exitosa
+                            error_log("DEBUG: Miniatura subida y movida con éxito: " . $thumbnailFileName . " [SOURCE: UPLOAD_SUCCESS]");
+                        } else {
+                            error_log("ERROR: Fallo al mover el archivo subido de '{$imagen['tmp_name']}' a '{$targetPath}'. [SOURCE: ERR_MOVE_FAIL]");
+                            throw new \Exception('No se pudo subir la miniatura. Revisa los permisos de la carpeta de uploads. [SOURCE: ERR_MOVE_FAIL]');
                         }
-                    } elseif ($cantidad > 1) { // Si es un lote, la miniatura es OBLIGATORIA
-                        throw new \Exception('La miniatura es obligatoria para la creación de equipos por lote.');
+                    }
+
+                    // --- VERIFICACIÓN DE OBLIGATORIEDAD DE LA MINIATURA ---
+                    error_log("DEBUG: Verificando obligatoriedad. Cantidad: " . $cantidad . ", isThumbnailUploaded: " . ($isThumbnailUploaded ? 'true' : 'false') . ", thumbnailFileName: " . ($thumbnailFileName ?? 'NULL'));
+
+                    // Si es un lote (cantidad > 1) Y la miniatura NO fue subida exitosamente
+                    if ($cantidad > 1 && !$isThumbnailUploaded) {
+                        error_log("ERROR: Miniatura obligatoria para lote no proporcionada o con error de subida. Cantidad: " . $cantidad . " [SOURCE: ERR_BATCH_MANDATORY_MISSING_FINAL]");
+                        throw new \Exception('La miniatura es obligatoria para la creación de equipos por lote. [SOURCE: ERR_BATCH_MANDATORY_MISSING_FINAL]');
                     }
 
                     // Validación Previa de Rango de Series (solo si es lote)
@@ -395,9 +414,9 @@ class InventarioController extends BaseController
                             // --- Guardar miniatura a través de InventarioImagenModel ---
                             // Si se subió una miniatura, guardarla en inventario_imagenes y marcarla como thumbnail
                             if ($thumbnailFileName) {
-                                $inventarioImagenModel->save($newEquipmentId, $thumbnailFileName);
+                                $newImageId = $inventarioImagenModel->save($newEquipmentId, $thumbnailFileName, true);
                                 // Marcar la imagen recién guardada como thumbnail (usando su propio ID)
-                                $inventarioImagenModel->setThumbnail($newEquipmentId, \App\Core\Database::getInstance()->lastInsertId());
+                                // $inventarioImagenModel->setThumbnail($newEquipmentId, \App\Core\Database::getInstance()->lastInsertId());
                             }
                             $equiposInsertados++;
                         } catch (\Exception $e) {
